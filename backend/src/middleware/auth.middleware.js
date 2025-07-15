@@ -1,13 +1,16 @@
-import { verifyToken } from "../../utils/jwt";
+import { verifyToken } from "../../utils/jwt.js";
 
-const middleware = async (req, res, next) => {
-  const header = req.header.authorization;
-  if (!header || !header.startswith("Bearer ")) {
+const authMiddleware = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Unauthorized: No token provided" });
   }
+
   const token = authHeader.split(" ")[1];
+
   try {
-    const decoded = await verifyToken(token);
+    const decoded = await verifyToken(token); 
     req.user = decoded;
     next();
   } catch (error) {
@@ -15,4 +18,4 @@ const middleware = async (req, res, next) => {
   }
 };
 
-export { middleware as authMiddleware };
+export { authMiddleware };
