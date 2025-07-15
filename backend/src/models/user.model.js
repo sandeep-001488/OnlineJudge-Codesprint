@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema(
       minlength: [3, "Username must be at least 3 characters long"],
       unique: true,
       trim: true,
+      role: {
+        type: Boolean,
+        default: false,
+      },
     },
     email: {
       type: String,
@@ -30,5 +34,5 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model.User || mongoose.model("User", userSchema);
 export default User;
