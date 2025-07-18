@@ -1,27 +1,51 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export const useThemeStore = create((set, get) => ({
-  theme: "light",
+export const useThemeStore = create(
+  persist(
+    (set, get) => ({
+      theme: "light",
+      isHydrated: false,
 
-  toggleTheme: () => {
-    const newTheme = get().theme === "light" ? "dark" : "light";
-    set({ theme: newTheme });
-    if (typeof window !== "undefined") {
-      document.documentElement.classList.toggle("dark", newTheme === "dark");
+      setHydrated: () => {
+        set({ isHydrated: true });
+      },
+
+      toggleTheme: () => {
+        const newTheme = get().theme === "light" ? "dark" : "light";
+        set({ theme: newTheme });
+        if (typeof window !== "undefined") {
+          document.documentElement.classList.toggle(
+            "dark",
+            newTheme === "dark"
+          );
+        }
+      },
+
+      initializeTheme: () => {
+        if (typeof window !== "undefined") {
+          const currentTheme = get().theme;
+          document.documentElement.classList.toggle(
+            "dark",
+            currentTheme === "dark"
+          );
+        }
+      },
+
+      setTheme: (theme) => {
+        set({ theme });
+        if (typeof window !== "undefined") {
+          document.documentElement.classList.toggle("dark", theme === "dark");
+        }
+      },
+    }),
+    {
+      name: "theme-store",
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.setHydrated();
+        }
+      },
     }
-  },
-
-  initializeTheme: () => {
-    if (typeof window !== "undefined") {
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      ).matches;
-      const initialTheme = prefersDark ? "dark" : "light";
-      set({ theme: initialTheme });
-      document.documentElement.classList.toggle(
-        "dark",
-        initialTheme === "dark"
-      );
-    }
-  },
-}));
+  )
+);

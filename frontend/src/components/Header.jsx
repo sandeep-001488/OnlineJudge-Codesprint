@@ -20,29 +20,45 @@ import { useThemeStore } from "@/store/themeStore";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, isLoggedIn, logout, isLoading, checkAuth, isInitialized } =
-    useAuthStore();
+  const {
+    user,
+    isLoggedIn,
+    logout,
+    checkAuth,
+    isInitialized,
+    isHydrated:authHydrated,
+  } = useAuthStore();
 
-  const { theme, toggleTheme, initializeTheme } = useThemeStore();
+  const {
+    theme,
+    toggleTheme,
+    initializeTheme,
+    isHydrated: themeHydrated,
+  } = useThemeStore();
+
 
   useEffect(() => {
     console.log(isLoggedIn);
   }, [isLoggedIn]);
 
-  useEffect(() => {
-    initializeTheme();
-  }, []);
+ useEffect(() => {
+   if (themeHydrated) {
+     initializeTheme();
+   }
+ }, [themeHydrated, initializeTheme]);
 
   useEffect(() => {
-    if (!isInitialized) {
+    if (authHydrated && !isInitialized) {
       checkAuth();
     }
-  }, [isInitialized, checkAuth]);
+  }, [authHydrated, isInitialized, checkAuth]);
 
   const handleLogout = () => {
     logout();
     setIsMenuOpen(false);
   };
+
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-lg dark:bg-gray-900/80 dark:border-gray-800 overflow-hidden">
@@ -98,12 +114,9 @@ export default function Header() {
               )}
             </Button>
 
-            {!isLoading && (
               <div className="hidden md:flex items-center space-x-2 order-2">
                 {isLoggedIn ? (
                   <>
-
-                    
                     <Button
                       variant="ghost"
                       onClick={handleLogout}
@@ -126,7 +139,8 @@ export default function Header() {
                   </>
                 )}
               </div>
-            )}
+
+         
 
             {/* Mobile menu button */}
             <Button
@@ -174,7 +188,6 @@ export default function Header() {
               </Link>
 
               {/* Mobile Auth Section */}
-              {!isLoading && (
                 <div className="border-t dark:border-gray-700 pt-2">
                   {isLoggedIn ? (
                     <>
@@ -205,7 +218,8 @@ export default function Header() {
                     </div>
                   )}
                 </div>
-              )}
+
+            
             </div>
           </div>
         )}
