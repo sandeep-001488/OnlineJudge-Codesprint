@@ -1,5 +1,6 @@
-import { loginUser,registerUser } from "../services/auth.service.js";
-import { generateAccessToken,generateRefreshToken } from "../../utils/jwt.js";
+import { loginUser, registerUser } from "../services/auth.service.js";
+import { generateAccessToken, generateRefreshToken } from "../../utils/jwt.js";
+import User from "../models/user.model.js";
 
 export async function Signup(req, res) {
   try {
@@ -9,6 +10,8 @@ export async function Signup(req, res) {
       message: "User created successfully",
       user: {
         id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
         username: user.username,
         email: user.email,
       },
@@ -36,12 +39,26 @@ export async function Login(req, res) {
       refreshToken,
       user: {
         id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
         username: user.username,
         email: user.email,
       },
     });
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+}
+
+export async function GetMe(req, res) {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
   }
 }
 

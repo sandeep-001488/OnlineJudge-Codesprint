@@ -28,5 +28,7 @@ const UserStatsSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const UserStats= mongoose.models.UserStatsSchema|| mongoose.model("UserStats",UserStatsSchema)
-export default UserStats
+const UserStats =
+  mongoose.models.UserStatsSchema ||
+  mongoose.model("UserStats", UserStatsSchema);
+export default UserStats;
