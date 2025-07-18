@@ -102,6 +102,8 @@ export default function Header() {
               <div className="hidden md:flex items-center space-x-2 order-2">
                 {isLoggedIn ? (
                   <>
+
+                    
                     <Button
                       variant="ghost"
                       onClick={handleLogout}
