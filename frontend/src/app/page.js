@@ -1,5 +1,4 @@
 // src/app/page.js
-import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,9 +16,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
-      <Header />
-
+    <>
       {/* Hero Section */}
       <section className="relative px-4 sm:px-6 lg:px-8 pt-16 pb-24">
         <div className="max-w-7xl mx-auto">
@@ -277,6 +274,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+      {/* </div> */}
+    </>
   );
 }
