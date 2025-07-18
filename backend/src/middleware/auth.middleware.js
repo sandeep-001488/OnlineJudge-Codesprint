@@ -10,7 +10,7 @@ const authMiddleware = async (req, res, next) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = await verifyToken(token); 
+    const decoded = await verifyToken(token);
     req.user = decoded;
     next();
   } catch (error) {
