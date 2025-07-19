@@ -91,7 +91,7 @@ int main() {
     setOutput("Running...");
 
     try {
-      const response = await fetch("http://localhost:8000/api/run", {
+      const response = await fetch("http://localhost:8000/run", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

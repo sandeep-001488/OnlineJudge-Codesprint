@@ -7,6 +7,7 @@ export const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
+      token: null,
       isLoggedIn: false,
       isLoading: false,
       error: null,
@@ -29,11 +30,13 @@ export const useAuthStore = create(
           );
           const { user, accessToken } = res.data;
 
-          if (typeof window !== "undefined") {
-            localStorage.setItem("token", accessToken);
-          }
-
-          set({ user, isLoggedIn: true, isLoading: false, error: null });
+          set({
+            user,
+            token: accessToken,
+            isLoggedIn: true,
+            isLoading: false,
+            error: null,
+          });
         } catch (error) {
           set({
             error: error.response?.data?.message || "Login failed",
@@ -43,16 +46,14 @@ export const useAuthStore = create(
       },
 
       logout: () => {
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("token");
-        }
-        set({ user: null, isLoggedIn: false });
+        set({ user: null, token: null, isLoggedIn: false });
       },
 
       checkAuth: async () => {
         if (typeof window === "undefined") return;
 
-        const token = localStorage.getItem("token");
+        const { token } = get();
+
         if (!token) {
           set({ isInitialized: true });
           return;
@@ -73,9 +74,10 @@ export const useAuthStore = create(
             isInitialized: true,
           });
         } catch (error) {
-          localStorage.removeItem("token");
+          console.log("Error response:", error.response?.data);
           set({
             user: null,
+            token: null,
             isLoggedIn: false,
             isLoading: false,
             isInitialized: true,
@@ -87,6 +89,7 @@ export const useAuthStore = create(
       name: "auth-store",
       partialize: (state) => ({
         user: state.user,
+        token: state.token,
         isLoggedIn: state.isLoggedIn,
         isInitialized: state.isInitialized,
       }),
