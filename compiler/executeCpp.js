@@ -29,10 +29,10 @@ const executeCpp = (filePath) => {
 
 // executeCpp(filePath)
 //   .then((output) => {
-//     console.log("✅ Compilation and Execution Success:\n", output);
+//     console.log(" Compilation and Execution Success:\n", output);
 //   })
 //   .catch((err) => {
-//     console.error("❌ Compilation or Execution Failed:\n", err);
+//     console.error(" Compilation or Execution Failed:\n", err);
 //   });
 
 module.exports = { executeCpp };
