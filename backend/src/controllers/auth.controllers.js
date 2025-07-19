@@ -1,5 +1,9 @@
 import { loginUser, registerUser } from "../services/auth.service.js";
-import { generateAccessToken, generateRefreshToken } from "../../utils/jwt.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyToken,
+} from "../../utils/jwt.js";
 import User from "../models/user.model.js";
 
 export async function Signup(req, res) {
@@ -9,7 +13,7 @@ export async function Signup(req, res) {
     res.status(201).json({
       message: "User created successfully",
       user: {
-        id: user._id,
+        id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         username: user.username,
@@ -30,15 +34,14 @@ export async function Login(req, res) {
   try {
     const user = await loginUser(req.body);
 
-    const accessToken = generateAccessToken({ id: user._id });
-    const refreshToken = generateRefreshToken({ id: user._id });
-
+    const accessToken = generateAccessToken({ id: user.id });
+    const refreshToken = generateRefreshToken({ id: user.id });
     res.status(200).json({
       message: "User logged in successfully",
       accessToken,
       refreshToken,
       user: {
-        id: user._id,
+        id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         username: user.username,
@@ -70,10 +73,8 @@ export async function RefreshToken(req, res) {
   }
 
   try {
-    // Use `true` to verify as a refresh token
     const decoded = verifyToken(refreshToken, true);
 
-    // Generate new access token
     const accessToken = generateAccessToken({ id: decoded.id });
 
     res.status(200).json({
