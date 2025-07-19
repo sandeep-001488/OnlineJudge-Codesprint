@@ -46,7 +46,6 @@ export default function ClientLayout({ children }) {
                     />
                   </svg>
                 </div>
-                {/* <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full animate-ping"></div> */}
               </div>
 
               {/* Loading spinner */}

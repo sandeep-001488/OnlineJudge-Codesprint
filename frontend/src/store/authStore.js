@@ -11,9 +11,8 @@ export const useAuthStore = create(
       isLoading: false,
       error: null,
       isInitialized: false,
-      isHydrated: false, 
+      isHydrated: false,
 
-     
       setHydrated: () => {
         set({ isHydrated: true });
       },
@@ -28,10 +27,10 @@ export const useAuthStore = create(
               headers: { "Content-Type": "application/json" },
             }
           );
-          const { user, token } = res.data;
+          const { user, accessToken } = res.data;
 
           if (typeof window !== "undefined") {
-            localStorage.setItem("token", token);
+            localStorage.setItem("token", accessToken);
           }
 
           set({ user, isLoggedIn: true, isLoading: false, error: null });

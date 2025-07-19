@@ -37,9 +37,6 @@ export default function Header() {
   } = useThemeStore();
 
 
-  useEffect(() => {
-    console.log(isLoggedIn);
-  }, [isLoggedIn]);
 
  useEffect(() => {
    if (themeHydrated) {
