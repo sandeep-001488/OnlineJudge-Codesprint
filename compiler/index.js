@@ -12,15 +12,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.post("/run", async (req, res) => {
-  const { language = "cpp", code } = req.body;
+  const { language = "cpp", code, input } = req.body;
 
   if (!code) {
     return res.status(400).json({ success: false, error: "Empty code" });
   }
 
   try {
-    const filePath = generateFile(language, code);
-    const output = await executeCpp(filePath);
+    const { filePath, inputPath } = generateFile(language, code, input);
+    const output = await executeCpp(filePath, inputPath);
     return res.json({ success: true, output });
   } catch (error) {
     return res.status(500).json({ success: false, error });

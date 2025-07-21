@@ -8,12 +8,12 @@ if (!fs.existsSync(outputPath)) {
   fs.mkdirSync(outputPath, { recursive: true });
 }
 
-const executeCpp = (filePath) => {
+const executeCpp = (filePath, inputPath) => {
   const jobId = path.basename(filePath).split(".")[0];
   const outPath = path.join(outputPath, `${jobId}.exe`);
 
   return new Promise((resolve, reject) => {
-    const command = `g++ "${filePath}" -o "${outPath}" && "${outPath}"`;
+    const command = `g++ "${filePath}" -o "${outPath}" && "${outPath}"< "${inputPath}"`;
 
     exec(command, (error, stdout, stderr) => {
       if (error) return reject({ error, stderr });
@@ -22,7 +22,6 @@ const executeCpp = (filePath) => {
     });
   });
 };
-
 
 // const filePath =
 //   "C:/Users/STC/Desktop/next.Js/OnlineJudge-CodeSprint/compiler/codes/ba4e27ef-c589-42aa-8444-edfb117a7e4a.cpp";
