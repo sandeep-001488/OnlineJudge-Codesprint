@@ -48,6 +48,8 @@ int main() {
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [showOutput, setShowOutput] = useState(false);
+  const [customInput, setCustomInput] = useState("");
+
 
   const languages = [
     {
@@ -99,6 +101,7 @@ int main() {
         body: JSON.stringify({
           language: selectedLanguage,
           code: code,
+          input: customInput,
         }),
       });
 
@@ -191,6 +194,14 @@ int main() {
               onChange={(e) => setCode(e.target.value)}
               className="min-h-96 font-mono text-sm bg-gray-50 dark:bg-slate-950 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Write your code here..."
+              spellCheck={false}
+            />
+
+            <Textarea
+              value={customInput}
+              onChange={(e) => setCustomInput(e.target.value)}
+              className="h-40 font-mono text-sm bg-gray-50 dark:bg-slate-950 border-gray-200 dark:border-slate-600 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter custom input for your code (e.g. 5 10)..."
               spellCheck={false}
             />
 
