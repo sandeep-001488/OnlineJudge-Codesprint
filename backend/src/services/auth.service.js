@@ -33,6 +33,7 @@ export async function registerUser({
     lastName: newUser.lastName,
     email: newUser.email,
     username: newUser.username,
+    role: newUser.role, 
   };
 }
 
@@ -52,5 +53,6 @@ export async function loginUser({ identifier, password }) {
     lastName: user.lastName,
     email: user.email,
     username: user.username,
+    role: user.role, 
   };
 }

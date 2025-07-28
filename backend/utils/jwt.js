@@ -11,7 +11,7 @@ export function generateRefreshToken(payload) {
     expiresIn: "7d",
   });
 }
-
+ 
 export function verifyToken(token, isRefresh = false) {
   const secret = isRefresh
     ? process.env.JWT_REFRESH_SECRET

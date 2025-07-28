@@ -17,7 +17,7 @@ const TestCaseSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    isHidden: {
+    isPublic: {
       type: Boolean,
       default: false, 
     },

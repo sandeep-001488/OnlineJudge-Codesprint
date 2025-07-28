@@ -18,6 +18,7 @@ export async function Signup(req, res) {
         lastName: user.lastName,
         username: user.username,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -34,8 +35,15 @@ export async function Login(req, res) {
   try {
     const user = await loginUser(req.body);
 
-    const accessToken = generateAccessToken({ id: user.id });
-    const refreshToken = generateRefreshToken({ id: user.id });
+    const accessToken = generateAccessToken({
+      id: user.id,
+      role: user.role,
+    });
+    const refreshToken = generateRefreshToken({
+      id: user.id,
+      role: user.role,
+    });
+
     res.status(200).json({
       message: "User logged in successfully",
       accessToken,
@@ -46,6 +54,7 @@ export async function Login(req, res) {
         lastName: user.lastName,
         username: user.username,
         email: user.email,
+        role: user.role, 
       },
     });
   } catch (error) {
@@ -75,7 +84,15 @@ export async function RefreshToken(req, res) {
   try {
     const decoded = verifyToken(refreshToken, true);
 
-    const accessToken = generateAccessToken({ id: decoded.id });
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const accessToken = generateAccessToken({
+      id: decoded.id,
+      role: user.role, 
+    });
 
     res.status(200).json({
       message: "Access token refreshed successfully",
