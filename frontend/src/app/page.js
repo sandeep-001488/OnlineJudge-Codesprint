@@ -1,25 +1,31 @@
-"use client"
+"use client";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "@/store/authStore";
-import { Trophy, BookOpen, Zap, Star, ArrowRight, Play } from "lucide-react";
+import {
+  Trophy,
+  BookOpen,
+  Zap,
+  Star,
+  ArrowRight,
+  BadgePlus,
+} from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  const router = useRouter();
-  const { isLoggedIn, isInitialized } = useAuthStore();
-
-  const handleProtectedAction = () => {
-    if (!isInitialized) return;
-
-    if (isLoggedIn) {
-      router.push("/code-compiler");
-    } else {
-      router.push("/login");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { user } = useAuthStore();
+  useEffect(() => {
+    if (
+      user?.role?.includes("admin") ||
+      user?.role?.includes("problemSetter")
+    ) {
+      setIsAdmin(true);
     }
-  };
+  }, [user]);
+
   return (
     <>
       {/* Hero Section */}
@@ -39,19 +45,23 @@ export default function Home() {
               platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link
+                href={"/admin/problems/create"}
+                className={`${!isAdmin && "hidden"} `}
+              >
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
-                  onClick={handleProtectedAction}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg cursor-pointer"
                 >
-                  <Play className="h-5 w-5 mr-2" />
-                  Start Coding
+                  <BadgePlus className="h-5 w-5 mr-2 " />
+                  Create Problem
                 </Button>
-              <Link href="/problems">
+              </Link>
+              <Link href={isAdmin ? "/admin/problems" : "/problems"}>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="px-8 py-3 text-lg"
+                  className="px-8 py-3 text-lg cursor-pointer"
                 >
                   Browse Problems
                   <ArrowRight className="h-5 w-5 ml-2" />
