@@ -121,11 +121,9 @@ const TestCasesManagementPage = () => {
 
           const fetchedTestCases = await getTestCasesByProblemId(
             problemId,
-            true, 
+            true,
             token
           );
-
-        
         } catch (error) {
           console.error("Component - Error loading data:", error);
         } finally {
@@ -150,7 +148,7 @@ const TestCasesManagementPage = () => {
     problemId,
     token,
     isInitialLoad,
-    isLoggedIn, 
+    isLoggedIn,
     getProblemById,
     getTestCasesByProblemId,
     clearTestCases,
@@ -235,7 +233,7 @@ const TestCasesManagementPage = () => {
     let sortedTestCases = [...testCases].sort((a, b) => {
       const dateA = new Date(a.createdAt || a._id);
       const dateB = new Date(b.createdAt || b._id);
-      return dateB - dateA; 
+      return dateB - dateA;
     });
 
     switch (filterType) {
@@ -273,8 +271,6 @@ const TestCasesManagementPage = () => {
         return "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300 dark:border-gray-600";
     }
   };
-
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900/20 transition-colors duration-300">
@@ -341,7 +337,9 @@ const TestCasesManagementPage = () => {
                         onChange={(e) =>
                           setFormData({ ...formData, input: e.target.value })
                         }
-                        className="min-h-24 font-mono text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        className="w-full min-h-24 font-mono text-sm p-3 border border-gray-300 rounded-md 
+               dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+               resize-y break-all"
                         required
                       />
                     </div>
@@ -353,6 +351,7 @@ const TestCasesManagementPage = () => {
                       >
                         Expected Output
                       </Label>
+
                       <Textarea
                         id="expectedOutput"
                         placeholder="Enter expected output..."
@@ -363,7 +362,9 @@ const TestCasesManagementPage = () => {
                             expectedOutput: e.target.value,
                           })
                         }
-                        className="min-h-24 font-mono text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+                        className="w-full min-h-24 font-mono text-sm p-3 border border-gray-300 rounded-md 
+               dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+               resize-y break-all"
                         required
                       />
                     </div>
@@ -583,7 +584,7 @@ const TestCasesManagementPage = () => {
                           >
                             Input
                           </Label>
-                          <Textarea
+                          {/* <Textarea
                             id={`edit-input-${testCase._id}`}
                             value={formData.input}
                             onChange={(e) =>
@@ -593,6 +594,25 @@ const TestCasesManagementPage = () => {
                               })
                             }
                             className="min-h-16 font-mono text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 resize-none"
+                            required
+                          /> */}
+                          <Textarea
+                            id={`edit-input-${testCase._id}`}
+                            value={formData.input}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                input: e.target.value,
+                              })
+                            }
+                            className="w-full min-h-16 font-mono text-xs p-2 border border-gray-300 rounded-md
+             dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 
+             resize-y overflow-wrap-anywhere break-words"
+                            style={{
+                              wordWrap: "break-word",
+                              overflowWrap: "break-word",
+                              whiteSpace: "pre-wrap",
+                            }}
                             required
                           />
                         </div>
@@ -604,7 +624,7 @@ const TestCasesManagementPage = () => {
                           >
                             Expected Output
                           </Label>
-                          <Textarea
+                          {/* <Textarea
                             id={`edit-output-${testCase._id}`}
                             value={formData.expectedOutput}
                             onChange={(e) =>
@@ -614,6 +634,25 @@ const TestCasesManagementPage = () => {
                               })
                             }
                             className="min-h-16 font-mono text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 resize-none"
+                            required
+                          /> */}
+                          <Textarea
+                            id={`edit-output-${testCase._id}`}
+                            value={formData.expectedOutput}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                expectedOutput: e.target.value,
+                              })
+                            }
+                            className="w-full min-h-16 font-mono text-xs p-2 border border-gray-300 rounded-md
+             dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 
+             resize-y overflow-wrap-anywhere break-words"
+                            style={{
+                              wordWrap: "break-word",
+                              overflowWrap: "break-word",
+                              whiteSpace: "pre-wrap",
+                            }}
                             required
                           />
                         </div>

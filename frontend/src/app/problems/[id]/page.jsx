@@ -12,8 +12,6 @@ import { CustomInput } from "@/components/CustomInput";
 import { ActionButtons } from "@/components/ActionButtons";
 import { OutputPanel } from "@/components/OutputPanel";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, AlertCircle } from "lucide-react";
 
 const ProblemPage = () => {
   const router = useRouter();
@@ -43,6 +41,11 @@ const ProblemPage = () => {
   const [testCaseResults, setTestCaseResults] = useState([]);
   const [hasRun, setHasRun] = useState(false);
 
+  // New submission states
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState(null);
+  const [submissionError, setSubmissionError] = useState(null);
+
   useEffect(() => {
     if (authHydrated && !isInitialized) {
       checkAuth();
@@ -55,7 +58,6 @@ const ProblemPage = () => {
     }
   }, [isInitialized, isLoggedIn]);
 
- 
   // Fetch problem data
   useEffect(() => {
     const fetchProblem = async () => {
@@ -79,7 +81,6 @@ const ProblemPage = () => {
         );
 
         const data = response.data;
-        console.log("from problem id page ", data.problem.title);
         setProblem({
           title: data.problem.title,
           description: data.problem.description,
@@ -172,26 +173,25 @@ const rl = readline.createInterface({
     },
   ];
 
-   useEffect(() => {
-     const template =
-       languages.find((l) => l.value === selectedLanguage)?.template || "";
-     if (
-       template &&
-       (!code ||
-         code.trim() === "" ||
-         code ===
-           `#include<iostream>
+  useEffect(() => {
+    const template =
+      languages.find((l) => l.value === selectedLanguage)?.template || "";
+    if (
+      template &&
+      (!code ||
+        code.trim() === "" ||
+        code ===
+          `#include<iostream>
 using namespace std;
 
 int main() {
     cout << "Hello World!" << endl;
     return 0;
 }`)
-     ) {
-       setCode(template);
-     }
-   }, []);
-
+    ) {
+      setCode(template);
+    }
+  }, []);
 
   const handleCodeChange = useCallback(
     (newCode) => {
@@ -200,8 +200,13 @@ int main() {
         setError(null);
         setErrorLine(null);
       }
+      // Clear submission result when code changes
+      if (submissionResult) {
+        setSubmissionResult(null);
+        setSubmissionError(null);
+      }
     },
-    [error]
+    [error, submissionResult]
   );
 
   const { editorRef, highlightError, clearErrorHighlight } =
@@ -218,6 +223,8 @@ int main() {
     setErrorLine(null);
     setTestCaseResults([]);
     setHasRun(false);
+    setSubmissionResult(null);
+    setSubmissionError(null);
     clearErrorHighlight();
   };
 
@@ -260,6 +267,8 @@ int main() {
     setCustomInput("");
     setShowInput(false);
     setHasRun(false);
+    setSubmissionResult(null);
+    setSubmissionError(null);
     clearErrorHighlight();
   };
 
@@ -279,6 +288,8 @@ int main() {
     setErrorLine(null);
     setTestCaseResults([]);
     setHasRun(true);
+    setSubmissionResult(null);
+    setSubmissionError(null);
     clearErrorHighlight();
     const startTime = Date.now();
 
@@ -396,11 +407,261 @@ int main() {
     }
   };
 
-  const handleSubmit = () => {
-    // Dummy submit function - implement later
-    console.log("Submit clicked - implement later");
-  };
+  // const handleSubmit = async () => {
+  //   if (!problemId || !code.trim()) {
+  //     setSubmissionError("Please write some code before submitting");
+  //     return;
+  //   }
 
+  //   setIsSubmitting(true);
+  //   setSubmissionResult(null);
+  //   setSubmissionError(null);
+  //   setError(null);
+  //   setErrorLine(null);
+  //   clearErrorHighlight();
+
+  //   try {
+  //     // Fetch all test cases (including private ones) for this problem
+  //     const testCasesResponse = await axios.get(
+  //       `http://localhost:5000/api/testcases/problem/${problemId}?includePrivate=true`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     const allTestCases = testCasesResponse.data.testCases || [];
+  //     const hiddenTestCases = allTestCases.filter(
+  //       (testCase) => !testCase.isPublic
+  //     );
+
+  //     if (hiddenTestCases.length === 0) {
+  //       setSubmissionError("No hidden test cases found for this problem");
+  //       return;
+  //     }
+
+  //     let allPassed = true;
+  //     let failedTestCase = null;
+  //     let compilationError = null;
+
+  //     // Run code against all hidden test cases
+  //     for (let i = 0; i < hiddenTestCases.length; i++) {
+  //       const testCase = hiddenTestCases[i];
+
+  //       const response = await fetch("http://localhost:5000/api/run", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify({
+  //           language: selectedLanguage,
+  //           code: code,
+  //           input: testCase.input,
+  //         }),
+  //       });
+
+  //       const result = await response.json();
+
+  //       // If there's a compilation or runtime error, stop immediately
+  //       if (!result.success) {
+  //         allPassed = false;
+  //         compilationError = {
+  //           type: result.type || "runtime",
+  //           message: result.error,
+  //           line: result.line,
+  //         };
+
+  //         setError(compilationError);
+  //         setErrorLine(result.line);
+  //         if (result.line) {
+  //           highlightError(result.line);
+  //         }
+  //         break;
+  //       }
+
+  //       // Check if output matches expected output
+  //       const actualOutput = result.output?.trim() || "";
+  //       const expectedOutput = testCase.expectedOutput?.trim() || "";
+
+  //       if (actualOutput !== expectedOutput) {
+  //         allPassed = false;
+  //         failedTestCase = i + 1;
+  //         break;
+  //       }
+  //     }
+
+  //     // Set submission result
+  //     if (compilationError) {
+  //       setSubmissionResult(null); // Don't show result if there's a compilation error
+  //     } else if (allPassed) {
+  //       setSubmissionResult({
+  //         status: "accepted",
+  //         message: "Accepted! All test cases passed.",
+  //         totalTestCases: hiddenTestCases.length,
+  //       });
+  //     } else {
+  //       setSubmissionResult({
+  //         status: "wrong_answer",
+  //         message: `Wrong Answer on hidden test case ${failedTestCase}`,
+  //         totalTestCases: hiddenTestCases.length,
+  //         failedTestCase,
+  //       });
+  //     }
+
+  //     // Scroll to submission result
+  //     setTimeout(() => {
+  //       const submissionElement = document.getElementById("submission-result");
+  //       if (submissionElement) {
+  //         submissionElement.scrollIntoView({ behavior: "smooth" });
+  //       }
+  //     }, 100);
+  //   } catch (error) {
+  //     console.error("Submission error:", error);
+
+  //     if (error.response) {
+  //       const status = error.response.status;
+  //       if (status === 404) {
+  //         setSubmissionError("Test cases not found for this problem");
+  //       } else if (status === 401) {
+  //         setSubmissionError("Unauthorized access");
+  //       } else {
+  //         setSubmissionError(`Failed to submit: ${status}`);
+  //       }
+  //     } else if (error.request) {
+  //       setSubmissionError("Network error: Unable to connect to server");
+  //     } else {
+  //       setSubmissionError(
+  //         error.message || "An unexpected error occurred during submission"
+  //       );
+  //     }
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+  const handleSubmit = async () => {
+    if (!problemId || !code.trim()) {
+      setSubmissionError("Please write some code before submitting");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmissionResult(null);
+    setSubmissionError(null);
+    setError(null);
+    setErrorLine(null);
+    clearErrorHighlight();
+
+    try {
+      const testCasesResponse = await axios.get(
+        `http://localhost:5000/api/testcases/problem/${problemId}?includePrivate=true`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const allTestCases = testCasesResponse.data.testCases || [];
+      const hiddenTestCases = allTestCases.filter(
+        (testCase) => !testCase.isPublic
+      );
+
+      if (hiddenTestCases.length === 0) {
+        setSubmissionError("No hidden test cases found for this problem");
+        return;
+      }
+
+      let failedCount = 0;
+      let firstFailedTestCase = null;
+      let compilationError = null;
+
+      for (let i = 0; i < hiddenTestCases.length; i++) {
+        const testCase = hiddenTestCases[i];
+
+        const response = await fetch("http://localhost:5000/api/run", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            language: selectedLanguage,
+            code: code,
+            input: testCase.input,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!result.success) {
+          compilationError = {
+            type: result.type || "runtime",
+            message: result.error,
+            line: result.line,
+          };
+          setError(compilationError);
+          setErrorLine(result.line);
+          if (result.line) highlightError(result.line);
+          break;
+        }
+
+        const actualOutput = result.output?.trim() || "";
+        const expectedOutput = testCase.expectedOutput?.trim() || "";
+
+        if (actualOutput !== expectedOutput) {
+          failedCount++;
+          if (firstFailedTestCase === null) {
+            firstFailedTestCase = i + 1;
+          }
+        }
+      }
+
+      if (compilationError) {
+        setSubmissionResult(null);
+      } else if (failedCount === 0) {
+        setSubmissionResult({
+          status: "accepted",
+          message: "All test cases passed.",
+          totalTestCases: hiddenTestCases.length,
+        });
+      } else {
+        setSubmissionResult({
+          status: "wrong_answer",
+          message: `Wrong Answer on ${failedCount} hidden test case(s). First failed at test case ${firstFailedTestCase}.`,
+          totalTestCases: hiddenTestCases.length,
+          failedTestCase: firstFailedTestCase,
+          failedCount,
+        });
+      }
+
+      setTimeout(() => {
+        const submissionElement = document.getElementById("submission-result");
+        if (submissionElement) {
+          submissionElement.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Submission error:", error);
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 404) {
+          setSubmissionError("Test cases not found for this problem");
+        } else if (status === 401) {
+          setSubmissionError("Unauthorized access");
+        } else {
+          setSubmissionError(`Failed to submit: ${status}`);
+        }
+      } else if (error.request) {
+        setSubmissionError("Network error: Unable to connect to server");
+      } else {
+        setSubmissionError(
+          error.message || "An unexpected error occurred during submission"
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!problem) {
     return null;
@@ -424,6 +685,7 @@ int main() {
             <div className="sticky z-20 top-16 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 pb-2">
               <ActionButtons
                 isRunning={isRunning}
+                isSubmitting={isSubmitting}
                 onRunCode={runCode}
                 onSubmit={handleSubmit}
               />
@@ -446,6 +708,66 @@ int main() {
               />
             </div>
 
+            {submissionResult && (
+              <div
+                id="submission-result"
+                className="bg-white dark:bg-slate-800 rounded-lg border shadow-sm p-6"
+              >
+                {/* Status Indicator */}
+                <div
+                  className={`flex items-center space-x-3 ${
+                    submissionResult.status === "accepted"
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400"
+                  }`}
+                >
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      submissionResult.status === "accepted"
+                        ? "bg-green-500"
+                        : "bg-red-500"
+                    }`}
+                  ></div>
+                  <h3 className="text-lg font-semibold">
+                    {submissionResult.status === "accepted"
+                      ? "Accepted"
+                      : "Wrong Answer"}
+                  </h3>
+                </div>
+
+                {/* Message */}
+                <p className="mt-2 text-gray-700 dark:text-gray-300">
+                  {submissionResult.status === "accepted"
+                    ? `🎉 Congratulations !! Your solution is correct`
+                    : submissionResult.failedTestCase !== undefined &&
+                      "Failed on a hidden test case"}
+                </p>
+
+                {/* Stats */}
+                <div className="mt-3 text-sm font-semibold text-gray-500 dark:text-white">
+                  {submissionResult.status === "accepted"
+                    ? `Happy Coding 😊. Attack more problems !!`
+                    : `${
+                        submissionResult.totalTestCases -
+                        submissionResult.failedCount
+                      }/${submissionResult.totalTestCases} testcases passed`}
+                </div>
+              </div>
+            )}
+
+            {/* Submission Error */}
+            {submissionError && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                  <h4 className="font-medium">Submission Error</h4>
+                </div>
+                <p className="mt-1 text-red-700 dark:text-red-300 text-sm">
+                  {submissionError}
+                </p>
+              </div>
+            )}
+
             {/* Error Display - Show only when there's an error */}
             {error && (
               <ErrorDisplay
@@ -455,13 +777,14 @@ int main() {
               />
             )}
 
-            {/* Test Cases Section - Hide when there's an error */}
+            {/* Test Cases Section - Hide when there's an error or submission result */}
             {!error &&
+              !submissionResult &&
               problem.sampleTestCases &&
               problem.sampleTestCases.length > 0 && (
                 <div id="testCases-section">
                   <TestCasesSection
-                    testCases={problem.sampleTestCases.slice(0, 3)}
+                    testCases={problem.sampleTestCases.slice(0, 3).reverse()}
                     testCaseResults={testCaseResults}
                     executionTime={executionTime}
                     isRunning={isRunning}
@@ -469,8 +792,7 @@ int main() {
                 </div>
               )}
 
-            {/* Custom Input - Hide when there's an error */}
-            {!error && (
+            {!error && !submissionResult && (
               <div id="customInput-section">
                 <CustomInput
                   customInput={customInput}
@@ -481,8 +803,7 @@ int main() {
               </div>
             )}
 
-            {/* Custom Output Panel - Only show if hasRun is true and custom input exists */}
-            {!error && customInput.trim() && hasRun && (
+            {!error && !submissionResult && customInput.trim() && hasRun && (
               <OutputPanel
                 isRunning={isRunning}
                 output={output}

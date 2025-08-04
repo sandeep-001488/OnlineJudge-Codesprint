@@ -1,4 +1,4 @@
-"use code editor";
+"use client"
 import {
   Copy,
   Download,

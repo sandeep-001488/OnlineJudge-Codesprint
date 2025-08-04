@@ -50,11 +50,20 @@ export default function ProblemSetterForm() {
     sampleTestCases: [{ input: "", expectedOutput: "", explanation: "" }],
   });
 
-  const [previewMode, setPreviewMode] = useState(false);
+  // Separate preview states for each field
+  const [previewModes, setPreviewModes] = useState({
+    title: false,
+    description: false,
+    inputFormat: false,
+    outputFormat: false,
+    constraints: false,
+    testCases: {}, // Will store preview state for each test case explanation
+  });
+
   const [currentTag, setCurrentTag] = useState("");
   const [activeTab, setActiveTab] = useState("basic");
   const { user, token, isLoggedIn, isInitialized } = useAuthStore();
- const { createProblem } = useProblemStore();
+  const { createProblem } = useProblemStore();
 
   const router = useRouter();
 
@@ -114,11 +123,12 @@ export default function ProblemSetterForm() {
   };
 
   const addTestCase = () => {
+    // Add new test case at the beginning (index 0)
     setProblemData((prev) => ({
       ...prev,
       sampleTestCases: [
-        ...prev.sampleTestCases,
         { input: "", expectedOutput: "", explanation: "" },
+        ...prev.sampleTestCases,
       ],
     }));
   };
@@ -128,6 +138,15 @@ export default function ProblemSetterForm() {
       setProblemData((prev) => ({
         ...prev,
         sampleTestCases: prev.sampleTestCases.filter((_, i) => i !== index),
+      }));
+
+      // Clean up preview state for removed test case
+      setPreviewModes((prev) => ({
+        ...prev,
+        testCases: {
+          ...prev.testCases,
+          [index]: undefined,
+        },
       }));
     }
   };
@@ -152,42 +171,70 @@ export default function ProblemSetterForm() {
     }));
   };
 
+  const togglePreviewMode = (field, testCaseIndex = null) => {
+    if (testCaseIndex !== null) {
+      // Handle test case explanation preview
+      setPreviewModes((prev) => ({
+        ...prev,
+        testCases: {
+          ...prev.testCases,
+          [testCaseIndex]: !prev.testCases[testCaseIndex],
+        },
+      }));
+    } else {
+      // Handle other field previews
+      setPreviewModes((prev) => ({
+        ...prev,
+        [field]: !prev[field],
+      }));
+    }
+  };
 
- const handleSubmit = async (e) => {
-   e.preventDefault();
-   if (!token) {
-     toast.error("Authentication required. Please login first.");
-     return;
-   }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!token) {
+      toast.error("Authentication required. Please login first.");
+      return;
+    }
 
-   try {
-     const createdProblem = await createProblem(problemData, token);
+    try {
+      const createdProblem = await createProblem(problemData, token);
 
-  
-     if (createdProblem) {
-       setProblemData({
-         title: "",
-         description: "",
-         inputFormat: "",
-         outputFormat: "",
-         constraints: "",
-         difficulty: "easy",
-         tags: [],
-         sampleTestCases: [{ input: "", expectedOutput: "", explanation: "" }],
-       });
+      if (createdProblem) {
+        setProblemData({
+          title: "",
+          description: "",
+          inputFormat: "",
+          outputFormat: "",
+          constraints: "",
+          difficulty: "easy",
+          tags: [],
+          sampleTestCases: [{ input: "", expectedOutput: "", explanation: "" }],
+        });
 
-       setCurrentTag("");
-       setActiveTab("basic");
-       setPreviewMode(false);
-     }
+        setPreviewModes({
+          title: false,
+          description: false,
+          inputFormat: false,
+          outputFormat: false,
+          constraints: false,
+          testCases: {},
+        });
 
-   } catch (error) {
-     
-     console.error("Problem creation failed:", error);
-   }
- };
+        setCurrentTag("");
+        setActiveTab("basic");
+      }
+    } catch (error) {
+      console.error("Problem creation failed:", error);
+    }
+  };
 
   const renderMarkdownPreview = (text) => {
+    if (!text)
+      return (
+        <p className="text-muted-foreground italic">No content provided...</p>
+      );
+
     return (
       <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-gray-100">
         {text.split("\n").map((line, i) => {
@@ -209,23 +256,74 @@ export default function ProblemSetterForm() {
                 {line.slice(3)}
               </h2>
             );
+          } else if (line.startsWith("### ")) {
+            return (
+              <h3
+                key={i}
+                className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-200"
+              >
+                {line.slice(4)}
+              </h3>
+            );
           } else if (line.startsWith("**") && line.endsWith("**")) {
             return (
               <p key={i} className="font-semibold mb-2">
                 {line.slice(2, -2)}
               </p>
             );
+          } else if (line.includes("**")) {
+            // Handle inline bold text
+            const parts = line.split("**");
+            return (
+              <p key={i} className="mb-2 leading-relaxed">
+                {parts.map((part, idx) =>
+                  idx % 2 === 1 ? <strong key={idx}>{part}</strong> : part
+                )}
+              </p>
+            );
+          } else if (line.startsWith("- ") || line.startsWith("* ")) {
+            return (
+              <li key={i} className="mb-1 ml-4 list-disc">
+                {line.slice(2)}
+              </li>
+            );
           } else if (line.trim() === "") {
             return <br key={i} />;
           } else {
             return (
-              <p key={i} className="mb-2 leading-relaxed">
+              <p
+                key={i}
+                className="mb-2 leading-relaxed text-gray-700 dark:text-gray-300"
+              >
                 {line}
               </p>
             );
           }
         })}
       </div>
+    );
+  };
+
+  const PreviewToggleButton = ({ field, testCaseIndex = null }) => {
+    const isPreview =
+      testCaseIndex !== null
+        ? previewModes.testCases[testCaseIndex]
+        : previewModes[field];
+
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => togglePreviewMode(field, testCaseIndex)}
+        className="flex items-center gap-2 border-2"
+      >
+        {isPreview ? (
+          <EyeOff className="h-4 w-4" />
+        ) : (
+          <Eye className="h-4 w-4" />
+        )}
+        {isPreview ? "Edit" : "Preview"}
+      </Button>
     );
   };
 
@@ -344,18 +442,36 @@ export default function ProblemSetterForm() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Title */}
+                {/* Title with Preview */}
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-base font-semibold">
-                    Problem Title *
-                  </Label>
-                  <Input
-                    id="title"
-                    value={problemData.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                    placeholder="Enter an engaging problem title..."
-                    className="h-12 text-lg border-2 focus:border-blue-500 transition-all"
-                  />
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="title" className="text-base font-semibold">
+                      Problem Title *
+                    </Label>
+                    <PreviewToggleButton field="title" />
+                  </div>
+
+                  {!previewModes.title ? (
+                    <Input
+                      id="title"
+                      value={problemData.title}
+                      onChange={(e) =>
+                        handleInputChange("title", e.target.value)
+                      }
+                      placeholder="Enter an engaging problem title..."
+                      className="h-12 text-lg border-2 focus:border-blue-500 transition-all"
+                    />
+                  ) : (
+                    <div className="h-12 p-3 rounded-lg border-2 bg-gray-50 dark:bg-gray-900/50 flex items-center">
+                      {problemData.title ? (
+                        renderMarkdownPreview(problemData.title)
+                      ) : (
+                        <p className="text-muted-foreground italic">
+                          No title provided yet...
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -479,22 +595,11 @@ export default function ProblemSetterForm() {
                     <Code className="h-6 w-6 text-purple-600" />
                     Problem Description
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    onClick={() => setPreviewMode(!previewMode)}
-                    className="flex items-center gap-2 border-2"
-                  >
-                    {previewMode ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                    {previewMode ? "Edit" : "Preview"}
-                  </Button>
+                  <PreviewToggleButton field="description" />
                 </div>
               </CardHeader>
               <CardContent>
-                {!previewMode ? (
+                {!previewModes.description ? (
                   <div className="space-y-3">
                     <Alert>
                       <AlertCircle className="h-4 w-4" />
@@ -538,78 +643,104 @@ Given an array of integers, find the maximum sum of a contiguous subarray.
           {/* I/O Format Tab */}
           <TabsContent value="format" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Input Format */}
+              {/* Input Format with Preview */}
               <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
                 <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <Target className="h-5 w-5 text-green-600" />
-                    Input Format
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Target className="h-5 w-5 text-green-600" />
+                      Input Format
+                    </CardTitle>
+                    <PreviewToggleButton field="inputFormat" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <Textarea
-                    value={problemData.inputFormat}
-                    // value=renderMarkdownPreview({problemData.inputFormat})
-                    onChange={(e) =>
-                      handleInputChange("inputFormat", e.target.value)
-                    }
-                    placeholder="Describe the input format...
+                  {!previewModes.inputFormat ? (
+                    <Textarea
+                      value={problemData.inputFormat}
+                      onChange={(e) =>
+                        handleInputChange("inputFormat", e.target.value)
+                      }
+                      placeholder="Describe the input format...
 
 Example:
 - First line contains integer N (number of elements)
 - Second line contains N space-separated integers"
-                    className="min-h-[200px] border-2 focus:border-green-500 transition-all resize-none"
-                  />
+                      className="min-h-[200px] border-2 focus:border-green-500 transition-all resize-none"
+                    />
+                  ) : (
+                    <div className="min-h-[200px] p-4 rounded-lg border-2 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto">
+                      {renderMarkdownPreview(problemData.inputFormat)}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
-              {/* Output Format */}
+              {/* Output Format with Preview */}
               <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
                 <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    <Target className="h-5 w-5 text-orange-600" />
-                    Output Format
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                      <Target className="h-5 w-5 text-orange-600" />
+                      Output Format
+                    </CardTitle>
+                    <PreviewToggleButton field="outputFormat" />
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  <Textarea
-                    value={problemData.outputFormat}
-                    onChange={(e) =>
-                      handleInputChange("outputFormat", e.target.value)
-                    }
-                    placeholder="Describe the output format...
+                  {!previewModes.outputFormat ? (
+                    <Textarea
+                      value={problemData.outputFormat}
+                      onChange={(e) =>
+                        handleInputChange("outputFormat", e.target.value)
+                      }
+                      placeholder="Describe the output format...
 
 Example:
 - Single integer representing the maximum sum"
-                    className="min-h-[200px] border-2 focus:border-orange-500 transition-all resize-none"
-                  />
+                      className="min-h-[200px] border-2 focus:border-orange-500 transition-all resize-none"
+                    />
+                  ) : (
+                    <div className="min-h-[200px] p-4 rounded-lg border-2 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto">
+                      {renderMarkdownPreview(problemData.outputFormat)}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
 
-            {/* Constraints */}
+            {/* Constraints with Preview */}
             <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <AlertCircle className="h-5 w-5 text-red-600" />
-                  Constraints
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    Constraints
+                  </CardTitle>
+                  <PreviewToggleButton field="constraints" />
+                </div>
               </CardHeader>
               <CardContent>
-                <Textarea
-                  value={problemData.constraints}
-                  onChange={(e) =>
-                    handleInputChange("constraints", e.target.value)
-                  }
-                  placeholder="Define the problem constraints...
+                {!previewModes.constraints ? (
+                  <Textarea
+                    value={problemData.constraints}
+                    onChange={(e) =>
+                      handleInputChange("constraints", e.target.value)
+                    }
+                    placeholder="Define the problem constraints...
 
 Example:
 - 1 ≤ N ≤ 10^5
 - -10^9 ≤ arr[i] ≤ 10^9
 - Time Limit: 1 second
 - Memory Limit: 256 MB"
-                  className="min-h-[150px] border-2 focus:border-red-500 transition-all resize-none"
-                />
+                    className="min-h-[150px] border-2 focus:border-red-500 transition-all resize-none"
+                  />
+                ) : (
+                  <div className="min-h-[150px] p-4 rounded-lg border-2 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto">
+                    {renderMarkdownPreview(problemData.constraints)}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -645,6 +776,15 @@ Example:
                             {index + 1}
                           </div>
                           Test Case {index + 1}
+                          {index === 0 &&
+                            problemData.sampleTestCases.length > 1 && (
+                              <Badge
+                                variant="secondary"
+                                className="ml-2 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              >
+                                New
+                              </Badge>
+                            )}
                         </CardTitle>
                         {problemData.sampleTestCases.length > 1 && (
                           <Button
@@ -698,21 +838,43 @@ Example:
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-sm font-semibold text-purple-700 dark:text-purple-400">
-                          Explanation (Optional)
-                        </Label>
-                        <Textarea
-                          value={testCase.explanation}
-                          onChange={(e) =>
-                            handleTestCaseChange(
-                              index,
-                              "explanation",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Explain this test case..."
-                          className="h-20 border-2 focus:border-purple-500 transition-all resize-none"
-                        />
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-semibold text-purple-700 dark:text-purple-400">
+                            Explanation (Optional)
+                          </Label>
+                          <PreviewToggleButton
+                            field="explanation"
+                            testCaseIndex={index}
+                          />
+                        </div>
+
+                        {!previewModes.testCases[index] ? (
+                          <Textarea
+                            value={testCase.explanation}
+                            onChange={(e) =>
+                              handleTestCaseChange(
+                                index,
+                                "explanation",
+                                e.target.value
+                              )
+                            }
+                            placeholder="Explain this test case with markdown support...
+
+Example:
+**Explanation:** The array [1, -3, 2, 1, -1] has maximum sum of 3 from subarray [2, 1]."
+                            className="h-20 border-2 focus:border-purple-500 transition-all resize-none"
+                          />
+                        ) : (
+                          <div className="h-20 p-3 rounded-lg border-2 bg-gray-50 dark:bg-gray-900/50 overflow-y-auto">
+                            {testCase.explanation ? (
+                              renderMarkdownPreview(testCase.explanation)
+                            ) : (
+                              <p className="text-muted-foreground italic">
+                                No explanation provided yet...
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>

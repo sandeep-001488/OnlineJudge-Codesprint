@@ -99,73 +99,70 @@ export default function ProblemEditPage() {
     }
   }, [problemData, originalData]);
 
-const fetchProblemData = async () => {
-  try {
-    setIsLoading(true);
-    setError(null);
+  const fetchProblemData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-    const response = await axios.get(
-      `http://localhost:5000/api/problems/${params.id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      const response = await axios.get(
+        `http://localhost:5000/api/problems/${params.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    const problemDataFromAPI = response.data;
-    console.log("problem data", response.data);
+      const problemDataFromAPI = response.data;
 
-    const formattedData = {
-      title:
-        problemDataFromAPI.problem?.title || problemDataFromAPI.title || "",
-      description:
-        problemDataFromAPI.problem?.description ||
-        problemDataFromAPI.description ||
-        "",
-      inputFormat:
-        problemDataFromAPI.problem?.inputFormat ||
-        problemDataFromAPI.inputFormat ||
-        "",
-      outputFormat:
-        problemDataFromAPI.problem?.outputFormat ||
-        problemDataFromAPI.outputFormat ||
-        "",
-      constraints:
-        problemDataFromAPI.problem?.constraints ||
-        problemDataFromAPI.constraints ||
-        "",
-      difficulty:
-        problemDataFromAPI.problem?.difficulty ||
-        problemDataFromAPI.difficulty ||
-        "easy",
-      tags: problemDataFromAPI.problem?.tags || problemDataFromAPI.tags || [],
-      sampleTestCases:
-        (
-          problemDataFromAPI.problem?.sampleTestCases ||
-          problemDataFromAPI.sampleTestCases
-        )?.length > 0
-          ? problemDataFromAPI.problem?.sampleTestCases ||
+      const formattedData = {
+        title:
+          problemDataFromAPI.problem?.title || problemDataFromAPI.title || "",
+        description:
+          problemDataFromAPI.problem?.description ||
+          problemDataFromAPI.description ||
+          "",
+        inputFormat:
+          problemDataFromAPI.problem?.inputFormat ||
+          problemDataFromAPI.inputFormat ||
+          "",
+        outputFormat:
+          problemDataFromAPI.problem?.outputFormat ||
+          problemDataFromAPI.outputFormat ||
+          "",
+        constraints:
+          problemDataFromAPI.problem?.constraints ||
+          problemDataFromAPI.constraints ||
+          "",
+        difficulty:
+          problemDataFromAPI.problem?.difficulty ||
+          problemDataFromAPI.difficulty ||
+          "easy",
+        tags: problemDataFromAPI.problem?.tags || problemDataFromAPI.tags || [],
+        sampleTestCases:
+          (
+            problemDataFromAPI.problem?.sampleTestCases ||
             problemDataFromAPI.sampleTestCases
-          : [{ input: "", expectedOutput: "", explanation: "" }],
-    };
+          )?.length > 0
+            ? problemDataFromAPI.problem?.sampleTestCases ||
+              problemDataFromAPI.sampleTestCases
+            : [{ input: "", expectedOutput: "", explanation: "" }],
+      };
 
+      setProblemData(formattedData);
+      setOriginalData(JSON.parse(JSON.stringify(formattedData)));
 
-    setProblemData(formattedData);
-    setOriginalData(JSON.parse(JSON.stringify(formattedData)));
-
-    toast.success("Problem data loaded successfully!");
-  } catch (err) {
-    const errorMessage =
-      err.response?.data?.message || "Failed to load problem data";
-    setError(errorMessage);
-    toast.error(errorMessage);
-    console.error("Error fetching problem:", err);
-  } finally {
-    setIsLoading(false);
-  }
-};
-
+      toast.success("Problem data loaded successfully!");
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message || "Failed to load problem data";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      console.error("Error fetching problem:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const difficultyConfig = {
     easy: {
@@ -209,8 +206,8 @@ const fetchProblemData = async () => {
     setProblemData((prev) => ({
       ...prev,
       sampleTestCases: [
-        ...prev.sampleTestCases,
         { input: "", expectedOutput: "", explanation: "" },
+        ...prev.sampleTestCases,
       ],
     }));
   };

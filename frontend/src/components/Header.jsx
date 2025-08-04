@@ -77,7 +77,7 @@ export default function Header() {
           {/* Desktop Navigation - positioned absolutely in center */}
           <nav className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
             <Link
-              href={isAdmin ? "/admin/probelms" : "/problems"}
+              href={isAdmin ? "/admin/problems" : "/problems"}
               className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
             >
               <BookOpen className="h-4 w-4" />
