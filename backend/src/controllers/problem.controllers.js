@@ -15,7 +15,7 @@ export async function createProblemController(req, res) {
       message: "Problem created",
       problem,
     });
-  } catch (err) {
+} catch (err) {
     console.error("Create problem error:", err);
     res.status(400).json({
       success: false,

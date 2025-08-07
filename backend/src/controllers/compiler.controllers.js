@@ -4,9 +4,7 @@ export default async function runCodeController(req, res) {
   const { language, code, input } = req.body;
 
   try {
-    const compilerURL = "http://localhost:8000/api/run";
-
-    const response = await axios.post(compilerURL, {
+    const response = await axios.post(`${process.env.compilerURL}`, {
       language,
       code,
       input,
@@ -15,6 +13,9 @@ export default async function runCodeController(req, res) {
     res.status(200).json(response.data);
   } catch (err) {
     console.error("Compiler error:", err.message);
-    res.status(500).json({ error: "Error communicating with compiler" });
+    if (err.response) {
+      console.error("Compiler response error:", err.response.data);
+    }
+    res.status(500).json({ error: err.message });
   }
 }

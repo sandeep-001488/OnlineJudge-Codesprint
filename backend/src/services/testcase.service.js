@@ -16,7 +16,6 @@ export const createTestCase = async (
   if (!isOwner && !isPrivileged) {
     throw new Error("You can only add test cases to your own problems");
   }
-
   const testCase = new TestCase({
     problemId,
     input,
