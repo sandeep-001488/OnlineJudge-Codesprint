@@ -1,18 +1,18 @@
-const executionService = require("../services/executionService");
+const { executeCode: runCode } = require("../services/executionService");
 
 const executeCode = async (req, res) => {
   const { language, code, input } = req.body;
 
   try {
     const startTime = Date.now();
-    const result = await executionService.executeCode(language, code, input);
+    const result = await runCode(language, code, input);
     const executionTime = Date.now() - startTime;
 
     return res.json({
       success: true,
       output: result || "Program executed successfully with no output",
       executionTime: `${executionTime}ms`,
-      memory: "N/A", 
+      memory: "N/A",
       language,
     });
   } catch (error) {
@@ -29,7 +29,6 @@ const executeCode = async (req, res) => {
 const getExecutionStatus = async (req, res) => {
   const { jobId } = req.params;
 
-  // This could be implemented for async execution tracking
   return res.json({
     success: true,
     message: "Status tracking not implemented yet",

@@ -3,17 +3,19 @@ const cors = require("cors");
 const codeRoutes = require("./src/routes/codeRoutes");
 const { errorHandler } = require("./src/utils/errorHandler");
 
+
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Routes
 app.use("/api", codeRoutes);
 
-// Health check endpoint
+app.get("/", (req, res) => {
+  res.send("Welcome to the Online Judge API");
+});
+
 app.get("/health", (req, res) => {
   res.json({
     status: "OK",
@@ -22,7 +24,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Global error handler
 app.use(errorHandler);
 
 module.exports = app;

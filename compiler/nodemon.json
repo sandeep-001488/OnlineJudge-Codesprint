@@ -1,0 +1,5 @@
+{
+  "ignore": ["temp/*", "outputs/*", "*.tmp", "*.temp", "node_modules/*"],
+  "delay": 1000,
+  "verbose": true
+}

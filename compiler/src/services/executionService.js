@@ -1,39 +1,33 @@
-const fileService = require("./fileService");
-const cppExecutor = require("./languageExecutors/cppExecutor");
-const pythonExecutor = require("./languageExecutors/pythonExecutor");
-const javaExecutor = require("./languageExecutors/javaExecutor");
-const javascriptExecutor = require("./languageExecutors/javascriptExecutor");
+const { generateFile } = require("./fileService");
+const { executeCpp } = require("./languageExecutors/cppExecutor");
+const { executePython } = require("./languageExecutors/pythonExecutor");
+const { executeJava } = require("./languageExecutors/javaExecutor");
+const { executeJavascript } = require("./languageExecutors/javascriptExecutor");
 
-class ExecutionService {
-  constructor() {
-    this.executors = {
-      cpp: cppExecutor,
-      python: pythonExecutor,
-      java: javaExecutor,
-      javascript: javascriptExecutor,
-    };
+const executors = {
+  cpp: executeCpp,
+  python: executePython,
+  java: executeJava,
+  javascript: executeJavascript,
+};
+
+const executeCode = async (language, code, input) => {
+  const executor = executors[language];
+
+  if (!executor) {
+    throw new Error(`Unsupported language: ${language}`);
   }
 
-  async executeCode(language, code, input) {
-    const executor = this.executors[language];
+  const { filePath, inputPath, jobId } = generateFile(language, code, input);
 
-    if (!executor) {
-      throw new Error(`Unsupported language: ${language}`);
-    }
-
-    const { filePath, inputPath, jobId } = fileService.generateFile(
-      language,
-      code,
-      input
-    );
-
-    try {
-      const output = await executor.execute(filePath, inputPath, jobId);
-      return output;
-    } catch (error) {
-      throw error;
-    }
+  try {
+    const output = await executor(filePath, inputPath, jobId);
+    return output;
+  } catch (error) {
+    throw error;
   }
-}
+};
 
-module.exports = new ExecutionService();
+module.exports = {
+  executeCode,
+};

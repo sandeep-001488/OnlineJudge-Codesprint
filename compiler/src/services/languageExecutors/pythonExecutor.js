@@ -1,19 +1,39 @@
 const { exec } = require("child_process");
-const fileService = require("../fileService");
+const { cleanupFiles } = require("../fileService");
 const { EXECUTION_TIMEOUT } = require("../../config/constants");
 
-class PythonExecutor {
-  async execute(filePath, inputPath, jobId) {
-    console.log(`[${jobId}] Starting Python execution`);
-    return new Promise((resolve, reject) => {
-      const command = `python "${filePath}" < "${inputPath}"`;
+const executePython = async (filePath, inputPath, jobId) => {
+  return new Promise((resolve, reject) => {
+    const pythonCommands = [
+      `python3 "${filePath}" < "${inputPath}"`,
+      `python "${filePath}" < "${inputPath}"`,
+      `/usr/bin/python3 "${filePath}" < "${inputPath}"`,
+      `/usr/local/bin/python "${filePath}" < "${inputPath}"`,
+    ];
+
+    const tryCommand = (commandIndex) => {
+      if (commandIndex >= pythonCommands.length) {
+        cleanupFiles([filePath, inputPath]);
+        return reject({
+          type: "runtime",
+          message:
+            "Python interpreter not found. Please ensure Python is installed.",
+          line: null,
+          jobId,
+        });
+      }
+
+      const command = pythonCommands[commandIndex];
 
       exec(command, { timeout: EXECUTION_TIMEOUT }, (err, stdout, stderr) => {
-        // Cleanup files
-        fileService.cleanupFiles([filePath, inputPath]);
-
         if (err) {
-             console.error(`[${jobId}] Python execution failed:`, err.message);
+          if (err.message.includes("not found") || err.code === 127) {
+            return tryCommand(commandIndex + 1);
+          }
+
+          cleanupFiles([filePath, inputPath]);
+          // console.error(`[${jobId}] Python execution failed:`, err.message);
+
           if (err.killed) {
             return reject({
               type: "runtime",
@@ -21,7 +41,7 @@ class PythonExecutor {
                 EXECUTION_TIMEOUT / 1000
               } seconds limit)`,
               line: null,
-              jobId
+              jobId,
             });
           }
 
@@ -38,14 +58,19 @@ class PythonExecutor {
             type: isSyntaxError ? "compilation" : "runtime",
             message: errorStr,
             line,
-            jobId
+            jobId,
           });
         }
 
+        cleanupFiles([filePath, inputPath]);
         resolve(stdout);
       });
-    });
-  }
-}
+    };
 
-module.exports = new PythonExecutor();
+    tryCommand(0);
+  });
+};
+
+module.exports = {
+  executePython,
+};
