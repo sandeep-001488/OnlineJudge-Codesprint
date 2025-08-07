@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import {
   Copy,
   Download,
@@ -6,6 +6,7 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,24 +53,43 @@ export const CodeEditor = ({
   onCopyCode,
   onDownloadCode,
   onResetCode,
+  submissions = [],
+  onViewSubmissions,
 }) => {
   const currentLanguage = languages.find(
     (lang) => lang.value === selectedLanguage
   );
 
+  const hasSubmissions = submissions && submissions.length > 0;
+
   return (
     <Card className="bg-white/80 dark:bg-slate-900/80 border border-gray-200/50 dark:border-slate-700/50 backdrop-blur-xl shadow-2xl">
       <CardHeader className="pb-4 border-b border-gray-100 dark:border-slate-800">
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center justify-between flex-wrap gap-5">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <div className="hidden sm:flex gap-2">
               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
               <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
-            <CardTitle className="text-gray-900 dark:text-white font-semibold">
-              Code Editor
-            </CardTitle>
+
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-gray-900 dark:text-white font-semibold">
+                Code Editor
+              </CardTitle>
+              {hasSubmissions && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onViewSubmissions}
+                  className="h-6 px-2 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20"
+                >
+                  <History className="w-3 h-3 mr-1" />
+                  {submissions.length}
+                </Button>
+              )}
+            </div>
+
             <Badge variant="outline" className="text-xs hidden sm:inline-flex">
               {currentLanguage?.version}
             </Badge>
@@ -151,7 +171,20 @@ export const CodeEditor = ({
           </div>
         </div>
 
-        {/* Show error badge on mobile */}
+        {hasSubmissions && (
+          <div className="sm:hidden mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onViewSubmissions}
+              className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20"
+            >
+              <History className="w-3 h-3 mr-1" />
+              View {submissions.length} Submissions
+            </Button>
+          </div>
+        )}
+
         {error && errorLine && (
           <Badge
             variant="outline"

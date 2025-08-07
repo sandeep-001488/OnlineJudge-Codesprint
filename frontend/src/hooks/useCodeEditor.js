@@ -11,7 +11,7 @@ import { oneDark } from "@codemirror/theme-one-dark";
 import { useThemeStore } from "@/store/themeStore";
 
 const addErrorHighlight = StateEffect.define();
-const clearErrorHighlightEffect = StateEffect.define(); 
+const clearErrorHighlightEffect = StateEffect.define();
 
 const errorHighlightField = StateField.define({
   create() {
@@ -53,10 +53,8 @@ export function useCodeMirrorEditor(language, initialCode, onChange) {
 
   const isDark = theme === "dark";
 
-  // Function to highlight error line
   const highlightError = (lineNumber) => {
     if (viewRef.current && lineNumber && lineNumber > 0) {
-      // Ensure line number is within bounds
       const maxLines = viewRef.current.state.doc.lines;
       const validLineNumber = Math.max(1, Math.min(lineNumber, maxLines));
 
@@ -99,7 +97,7 @@ export function useCodeMirrorEditor(language, initialCode, onChange) {
     }
 
     viewRef.current = new EditorView({
-      doc: initialCode,
+      doc: initialCode || "",
       extensions: [
         basicSetup,
         languageExtension,
@@ -139,7 +137,7 @@ export function useCodeMirrorEditor(language, initialCode, onChange) {
               ? "rgba(239, 68, 68, 0.15)"
               : "rgba(239, 68, 68, 0.1)",
             borderLeft: "3px solid #ef4444",
-            paddingLeft: "13px", 
+            paddingLeft: "13px",
             position: "relative",
           },
           ".cm-error-line .cm-gutterElement": {
@@ -176,27 +174,25 @@ export function useCodeMirrorEditor(language, initialCode, onChange) {
     });
 
     return () => viewRef.current?.destroy();
-  }, [language, isDark]); 
+  }, [language, isDark]);
 
   useEffect(() => {
-    if (
-      viewRef.current &&
-      viewRef.current.state.doc.toString() !== initialCode
-    ) {
-      viewRef.current.dispatch({
-        effects: clearErrorHighlightEffect.of(), 
-      });
-
-      viewRef.current.dispatch({
-        changes: {
-          from: 0,
-          to: viewRef.current.state.doc.length,
-          insert: initialCode,
-        },
-      });
+    if (viewRef.current) {
+      const currentContent = viewRef.current.state.doc.toString();
+      if (currentContent !== initialCode) {
+        viewRef.current.dispatch({
+          effects: clearErrorHighlightEffect.of(),
+        });
+        viewRef.current.dispatch({
+          changes: {
+            from: 0,
+            to: viewRef.current.state.doc.length,
+            insert: initialCode || "",
+          },
+        });
+      }
     }
   }, [initialCode]);
-
   return {
     editorRef,
     highlightError,

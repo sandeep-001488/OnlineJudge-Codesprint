@@ -1,11 +1,9 @@
-// stores/useTestCaseStore.js
 "use client";
 import axios from "axios";
 import { create } from "zustand";
 import { toast } from "sonner";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const useTestCaseStore = create((set, get) => ({
   testCases: [],
@@ -14,7 +12,7 @@ export const useTestCaseStore = create((set, get) => ({
   error: null,
   pagination: {
     page: 1,
-    limit: 100, 
+    limit: 100,
     total: 0,
     pages: 0,
   },
@@ -58,7 +56,6 @@ export const useTestCaseStore = create((set, get) => ({
     }
   },
 
-  
   getTestCasesByProblemId: async (
     problemId,
     includePrivate = true,

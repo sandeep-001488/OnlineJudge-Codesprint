@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -32,14 +33,22 @@ export default function SignupPage() {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     try {
-      await axios.post("http://localhost:5000/api/auth/register", formData, {
-        headers: { "Content-Type": "application/json" },
-      });
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}auth/register`,
+        formData,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       router.push("/login");
     } catch (err) {
-      console.error("Login failed:", err.response?.data || err.message);
+      const errorMessage =
+        err.response?.data?.message || err.message || "signup failed";
+      setError(errorMessage);
+      console.error("signup failed:", errorMessage);
     }
   };
 
@@ -217,7 +226,6 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              {/* Confirm Password Field */}
               <div className="space-y-2">
                 <Label
                   htmlFor="confirmPassword"
@@ -287,8 +295,14 @@ export default function SignupPage() {
                 Create Account
               </Button>
             </form>
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-600 dark:border-yellow-500 rounded-lg p-4">
+                <p className="text-red-600 dark:text-yellow-400 text-sm">
+                  {error}
+                </p>
+              </div>
+            )}
 
-            {/* Sign In Link */}
             <div className="text-center">
               <span className="text-gray-600 dark:text-gray-400">
                 Already have an account?{" "}

@@ -105,7 +105,7 @@ export default function ProblemEditPage() {
       setError(null);
 
       const response = await axios.get(
-        `http://localhost:5000/api/problems/${params.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}problems/${params.id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -252,7 +252,7 @@ export default function ProblemEditPage() {
       setIsSaving(true);
 
       const response = await axios.put(
-        `http://localhost:5000/api/problems/${params.id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}problems/${params.id}`,
         problemData,
         {
           headers: {

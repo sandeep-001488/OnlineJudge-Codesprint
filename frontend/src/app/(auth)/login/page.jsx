@@ -12,6 +12,7 @@ import { useAuthStore } from "@/store/authStore";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     identifier: "",
     password: "",
@@ -28,11 +29,15 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     try {
       await login(formData);
       router.push("/");
     } catch (err) {
-      console.error("Login failed:", err.response?.data || err.message);
+      const errorMessage =
+        err.response?.data?.message || err.message || "Login failed";
+      setError(errorMessage);
+      console.error("Login failed:", errorMessage);
     }
   };
 
@@ -81,7 +86,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label
@@ -163,8 +167,14 @@ export default function LoginPage() {
                 Sign In
               </Button>
             </form>
+            {error && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-600 dark:border-yellow-500 rounded-lg p-4">
+                <p className="text-red-600 dark:text-yellow-400 text-sm">
+                  {error}
+                </p>
+              </div>
+            )}
 
-            {/* Sign Up Link */}
             <div className="text-center">
               <span className="text-gray-600 dark:text-gray-400">
                 Don't have an account?{" "}

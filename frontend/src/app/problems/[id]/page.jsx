@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import axios from "axios";
-import { useAuthStore } from "@/store/authStore";
 import { useCodeMirrorEditor } from "@/hooks/useCodeEditor";
 import { HeroSection } from "@/components/CompilerHeroSection";
 import { ProblemSection } from "@/components/ProblemSection";
@@ -12,117 +11,19 @@ import { CustomInput } from "@/components/CustomInput";
 import { ActionButtons } from "@/components/ActionButtons";
 import { OutputPanel } from "@/components/OutputPanel";
 import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { SubmissionHistoryModal } from "@/components/SubmissionHistoryModel";
+import { SubmissionCodeModal } from "@/components/SubmissionCodeModel";
+import FloatingAIAssistant from "@/components/AIAssitant/FloatingAIAssistant";
+import AIResponseDisplay from "@/components/AIAssitant/AIResponseDisplay";
+import { useSubmissionStore } from "@/store/submissionStore";
+import { useAuthStore } from "@/store/authStore";
+import { useAIStore } from "@/store/aiStore";
 
 const ProblemPage = () => {
   const router = useRouter();
   const params = useParams();
   const problemId = params?.id;
-
-  const { isInitialized, isLoggedIn, authHydrated, checkAuth, token } =
-    useAuthStore();
-
-  // Problem data state
-  const [problem, setProblem] = useState(null);
-  const [isLoadingProblem, setIsLoadingProblem] = useState(true);
-  const [problemError, setProblemError] = useState(null);
-
-  // Code execution states
-  const [selectedLanguage, setSelectedLanguage] = useState("cpp");
-  const [code, setCode] = useState("");
-  const [output, setOutput] = useState("");
-  const [isRunning, setIsRunning] = useState(false);
-  const [customInput, setCustomInput] = useState("");
-  const [executionTime, setExecutionTime] = useState(null);
-  const [memoryUsed, setMemoryUsed] = useState(null);
-  const [error, setError] = useState(null);
-  const [errorLine, setErrorLine] = useState(null);
-  const [isCopied, setIsCopied] = useState(false);
-  const [showInput, setShowInput] = useState(false);
-  const [testCaseResults, setTestCaseResults] = useState([]);
-  const [hasRun, setHasRun] = useState(false);
-
-  // New submission states
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionResult, setSubmissionResult] = useState(null);
-  const [submissionError, setSubmissionError] = useState(null);
-
-  useEffect(() => {
-    if (authHydrated && !isInitialized) {
-      checkAuth();
-    }
-  }, [authHydrated, isInitialized]);
-
-  useEffect(() => {
-    if (isInitialized && !isLoggedIn) {
-      router.push("/login");
-    }
-  }, [isInitialized, isLoggedIn]);
-
-  // Fetch problem data
-  useEffect(() => {
-    const fetchProblem = async () => {
-      if (!problemId) {
-        setProblemError("Problem ID not found");
-        setIsLoadingProblem(false);
-        return;
-      }
-
-      try {
-        setIsLoadingProblem(true);
-        setProblemError(null);
-
-        const response = await axios.get(
-          `http://localhost:5000/api/problems/${problemId}`,
-          {
-            headers: {
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-          }
-        );
-
-        const data = response.data;
-        setProblem({
-          title: data.problem.title,
-          description: data.problem.description,
-          inputFormat: data.problem.inputFormat,
-          outputFormat: data.problem.outputFormat,
-          constraints: data.problem.constraints,
-          sampleTestCases:
-            data.problem.sampleTestCases || data.problem.testCases || [],
-          difficulty: data.problem.difficulty,
-          tags: data.problem.tags || [],
-        });
-      } catch (error) {
-        console.error("Error fetching problem:", error);
-
-        // Handle axios-specific errors
-        if (error.response) {
-          // Server responded with error status
-          const status = error.response.status;
-          if (status === 404) {
-            setProblemError("Problem not found");
-          } else if (status === 401) {
-            setProblemError("Unauthorized access");
-          } else {
-            setProblemError(`Failed to fetch problem: ${status}`);
-          }
-        } else if (error.request) {
-          // Request was made but no response received
-          setProblemError("Network error: Unable to connect to server");
-        } else {
-          // Something else happened
-          setProblemError(error.message || "An unexpected error occurred");
-        }
-      } finally {
-        setIsLoadingProblem(false);
-      }
-    };
-
-    if (problemId && isInitialized) {
-      fetchProblem();
-    }
-  }, [problemId, isInitialized, token]);
-
+  const { responses, clearAllResponses } = useAIStore();
   const languages = [
     {
       value: "cpp",
@@ -172,26 +73,117 @@ const rl = readline.createInterface({
 // Your solution here`,
     },
   ];
+  const { isInitialized, isLoggedIn, authHydrated, checkAuth, token } =
+    useAuthStore();
+
+  const {
+    createSubmission,
+    getSubmissionsByProblem,
+    submissions,
+    isLoading: submissionLoading,
+  } = useSubmissionStore();
+
+  const [problem, setProblem] = useState(null);
+  const [isLoadingProblem, setIsLoadingProblem] = useState(true);
+  const [problemError, setProblemError] = useState(null);
+
+  const [selectedLanguage, setSelectedLanguage] = useState("cpp");
+  const [code, setCode] = useState(() => {
+    const template = languages.find((l) => l.value === "cpp")?.template || "";
+
+    return template;
+  });
+  const [output, setOutput] = useState("");
+  const [isRunning, setIsRunning] = useState(false);
+  const [customInput, setCustomInput] = useState("");
+  const [executionTime, setExecutionTime] = useState(null);
+  const [memoryUsed, setMemoryUsed] = useState(null);
+  const [error, setError] = useState(null);
+  const [errorLine, setErrorLine] = useState(null);
+  const [isCopied, setIsCopied] = useState(false);
+  const [showInput, setShowInput] = useState(false);
+  const [testCaseResults, setTestCaseResults] = useState([]);
+  const [hasRun, setHasRun] = useState(false);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState(null);
+  const [submissionError, setSubmissionError] = useState(null);
+  const [customInputExecuted, setCustomInputExecuted] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showCodeModal, setShowCodeModal] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
 
   useEffect(() => {
-    const template =
-      languages.find((l) => l.value === selectedLanguage)?.template || "";
-    if (
-      template &&
-      (!code ||
-        code.trim() === "" ||
-        code ===
-          `#include<iostream>
-using namespace std;
-
-int main() {
-    cout << "Hello World!" << endl;
-    return 0;
-}`)
-    ) {
-      setCode(template);
+    if (authHydrated && !isInitialized) {
+      checkAuth();
     }
-  }, []);
+  }, [authHydrated, isInitialized]);
+
+  useEffect(() => {
+    if (isInitialized && !isLoggedIn) {
+      router.push("/login");
+    }
+  }, [isInitialized, isLoggedIn]);
+
+  useEffect(() => {
+    const fetchProblem = async () => {
+      if (!problemId) {
+        setProblemError("Problem ID not found");
+        setIsLoadingProblem(false);
+        return;
+      }
+
+      try {
+        setIsLoadingProblem(true);
+        setProblemError(null);
+
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}problems/${problemId}`,
+          {
+            headers: {
+              ...(token && { Authorization: `Bearer ${token}` }),
+            },
+          }
+        );
+
+        const data = response.data;
+        setProblem({
+          title: data.problem.title,
+          description: data.problem.description,
+          inputFormat: data.problem.inputFormat,
+          outputFormat: data.problem.outputFormat,
+          constraints: data.problem.constraints,
+          sampleTestCases:
+            data.problem.sampleTestCases || data.problem.testCases || [],
+          difficulty: data.problem.difficulty,
+          tags: data.problem.tags || [],
+        });
+      } catch (error) {
+        console.error("Error fetching problem:", error);
+
+        if (error.response) {
+          const status = error.response.status;
+          if (status === 404) {
+            setProblemError("Problem not found");
+          } else if (status === 401) {
+            setProblemError("Unauthorized access");
+          } else {
+            setProblemError(`Failed to fetch problem: ${status}`);
+          }
+        } else if (error.request) {
+          setProblemError("Network error: Unable to connect to server");
+        } else {
+          setProblemError(error.message || "An unexpected error occurred");
+        }
+      } finally {
+        setIsLoadingProblem(false);
+      }
+    };
+
+    if (problemId && isInitialized) {
+      fetchProblem();
+    }
+  }, [problemId, isInitialized, token]);
 
   const handleCodeChange = useCallback(
     (newCode) => {
@@ -200,7 +192,6 @@ int main() {
         setError(null);
         setErrorLine(null);
       }
-      // Clear submission result when code changes
       if (submissionResult) {
         setSubmissionResult(null);
         setSubmissionError(null);
@@ -223,6 +214,7 @@ int main() {
     setErrorLine(null);
     setTestCaseResults([]);
     setHasRun(false);
+    setCustomInputExecuted(false);
     setSubmissionResult(null);
     setSubmissionError(null);
     clearErrorHighlight();
@@ -267,6 +259,7 @@ int main() {
     setCustomInput("");
     setShowInput(false);
     setHasRun(false);
+    setCustomInputExecuted(false);
     setSubmissionResult(null);
     setSubmissionError(null);
     clearErrorHighlight();
@@ -290,7 +283,9 @@ int main() {
     setHasRun(true);
     setSubmissionResult(null);
     setSubmissionError(null);
+    setCustomInputExecuted(false);
     clearErrorHighlight();
+    clearAllResponses();
     const startTime = Date.now();
 
     try {
@@ -301,7 +296,7 @@ int main() {
       for (let i = 0; i < problem.sampleTestCases.length; i++) {
         const testCase = problem.sampleTestCases[i];
 
-        const response = await fetch("http://localhost:5000/api/run", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}run`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -333,32 +328,35 @@ int main() {
         results.push({
           testCase: i + 1,
           input: testCase.input,
-          expectedOutput: testCase.expectedOutput || testCase.output,
+          expectedOutput: testCase.expectedOutput,
           actualOutput: result.success ? result.output : result.error,
           passed:
             result.success &&
-            result.output?.trim() ===
-              (testCase.expectedOutput || testCase.output)?.trim(),
+            result.output?.trim() === testCase.expectedOutput?.trim(),
           error: !result.success ? result.error : null,
         });
       }
 
       if (!hasError && customInput.trim()) {
-        const customResponse = await fetch("http://localhost:5000/api/run", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            language: selectedLanguage,
-            code: code,
-            input: customInput,
-          }),
-        });
+        const customResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}run`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              language: selectedLanguage,
+              code: code,
+              input: customInput,
+            }),
+          }
+        );
 
         const customResult = await customResponse.json();
         if (customResult.success) {
           setOutput(customResult.output);
+          setCustomInputExecuted(true);
         } else if (!hasError) {
           setError({
             type: customResult.type || "runtime",
@@ -377,23 +375,6 @@ int main() {
       if (!hasError) {
         setTestCaseResults(results);
       }
-
-      setTimeout(() => {
-        const testCasesSectionElement =
-          document.getElementById("testCases-section");
-        const customInputSectionElement = document.getElementById(
-          "customInput-section"
-        );
-        if (customInput.trim()) {
-          if (customInputSectionElement) {
-            customInputSectionElement.scrollIntoView({ behavior: "smooth" });
-          }
-        } else {
-          if (testCasesSectionElement) {
-            testCasesSectionElement.scrollIntoView({ behavior: "smooth" });
-          }
-        }
-      }, 100);
     } catch (error) {
       const errorMessage = `Network Error: ${error.message}`;
       setError({
@@ -407,138 +388,22 @@ int main() {
     }
   };
 
-  // const handleSubmit = async () => {
-  //   if (!problemId || !code.trim()) {
-  //     setSubmissionError("Please write some code before submitting");
-  //     return;
-  //   }
+  const handleViewSubmissions = () => {
+    setShowHistoryModal(true);
+  };
 
-  //   setIsSubmitting(true);
-  //   setSubmissionResult(null);
-  //   setSubmissionError(null);
-  //   setError(null);
-  //   setErrorLine(null);
-  //   clearErrorHighlight();
+  const handleViewSubmissionCode = (submission) => {
+    setSelectedSubmission(submission);
+    setShowHistoryModal(false);
+    setShowCodeModal(true);
+  };
 
-  //   try {
-  //     // Fetch all test cases (including private ones) for this problem
-  //     const testCasesResponse = await axios.get(
-  //       `http://localhost:5000/api/testcases/problem/${problemId}?includePrivate=true`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
+  const handleBackToHistory = () => {
+    setShowCodeModal(false);
+    setShowHistoryModal(true);
+    setSelectedSubmission(null);
+  };
 
-  //     const allTestCases = testCasesResponse.data.testCases || [];
-  //     const hiddenTestCases = allTestCases.filter(
-  //       (testCase) => !testCase.isPublic
-  //     );
-
-  //     if (hiddenTestCases.length === 0) {
-  //       setSubmissionError("No hidden test cases found for this problem");
-  //       return;
-  //     }
-
-  //     let allPassed = true;
-  //     let failedTestCase = null;
-  //     let compilationError = null;
-
-  //     // Run code against all hidden test cases
-  //     for (let i = 0; i < hiddenTestCases.length; i++) {
-  //       const testCase = hiddenTestCases[i];
-
-  //       const response = await fetch("http://localhost:5000/api/run", {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({
-  //           language: selectedLanguage,
-  //           code: code,
-  //           input: testCase.input,
-  //         }),
-  //       });
-
-  //       const result = await response.json();
-
-  //       // If there's a compilation or runtime error, stop immediately
-  //       if (!result.success) {
-  //         allPassed = false;
-  //         compilationError = {
-  //           type: result.type || "runtime",
-  //           message: result.error,
-  //           line: result.line,
-  //         };
-
-  //         setError(compilationError);
-  //         setErrorLine(result.line);
-  //         if (result.line) {
-  //           highlightError(result.line);
-  //         }
-  //         break;
-  //       }
-
-  //       // Check if output matches expected output
-  //       const actualOutput = result.output?.trim() || "";
-  //       const expectedOutput = testCase.expectedOutput?.trim() || "";
-
-  //       if (actualOutput !== expectedOutput) {
-  //         allPassed = false;
-  //         failedTestCase = i + 1;
-  //         break;
-  //       }
-  //     }
-
-  //     // Set submission result
-  //     if (compilationError) {
-  //       setSubmissionResult(null); // Don't show result if there's a compilation error
-  //     } else if (allPassed) {
-  //       setSubmissionResult({
-  //         status: "accepted",
-  //         message: "Accepted! All test cases passed.",
-  //         totalTestCases: hiddenTestCases.length,
-  //       });
-  //     } else {
-  //       setSubmissionResult({
-  //         status: "wrong_answer",
-  //         message: `Wrong Answer on hidden test case ${failedTestCase}`,
-  //         totalTestCases: hiddenTestCases.length,
-  //         failedTestCase,
-  //       });
-  //     }
-
-  //     // Scroll to submission result
-  //     setTimeout(() => {
-  //       const submissionElement = document.getElementById("submission-result");
-  //       if (submissionElement) {
-  //         submissionElement.scrollIntoView({ behavior: "smooth" });
-  //       }
-  //     }, 100);
-  //   } catch (error) {
-  //     console.error("Submission error:", error);
-
-  //     if (error.response) {
-  //       const status = error.response.status;
-  //       if (status === 404) {
-  //         setSubmissionError("Test cases not found for this problem");
-  //       } else if (status === 401) {
-  //         setSubmissionError("Unauthorized access");
-  //       } else {
-  //         setSubmissionError(`Failed to submit: ${status}`);
-  //       }
-  //     } else if (error.request) {
-  //       setSubmissionError("Network error: Unable to connect to server");
-  //     } else {
-  //       setSubmissionError(
-  //         error.message || "An unexpected error occurred during submission"
-  //       );
-  //     }
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
   const handleSubmit = async () => {
     if (!problemId || !code.trim()) {
       setSubmissionError("Please write some code before submitting");
@@ -551,10 +416,11 @@ int main() {
     setError(null);
     setErrorLine(null);
     clearErrorHighlight();
+    clearAllResponses();
 
     try {
       const testCasesResponse = await axios.get(
-        `http://localhost:5000/api/testcases/problem/${problemId}?includePrivate=true`,
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/problem/${problemId}?includePrivate=true`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -575,11 +441,14 @@ int main() {
       let failedCount = 0;
       let firstFailedTestCase = null;
       let compilationError = null;
+      let totalTime = 0;
+      let maxMemory = 0;
 
       for (let i = 0; i < hiddenTestCases.length; i++) {
         const testCase = hiddenTestCases[i];
+        const startTime = Date.now();
 
-        const response = await fetch("http://localhost:5000/api/run", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}run`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -592,6 +461,8 @@ int main() {
         });
 
         const result = await response.json();
+        const endTime = Date.now();
+        totalTime += endTime - startTime;
 
         if (!result.success) {
           compilationError = {
@@ -615,6 +486,28 @@ int main() {
           }
         }
       }
+
+      const submissionData = {
+        problemId,
+        code,
+        language: selectedLanguage,
+        status: compilationError
+          ? "Compilation Error"
+          : failedCount === 0
+          ? "Accepted"
+          : "Wrong Answer",
+        time: totalTime,
+        memory: maxMemory || Math.floor(Math.random() * 50) + 10, // Mock memory for now
+        output: compilationError
+          ? compilationError.message
+          : failedCount === 0
+          ? "All test cases passed"
+          : `Failed ${failedCount} test cases`,
+      };
+
+      await createSubmission(submissionData, token);
+
+      await getSubmissionsByProblem(problemId, token);
 
       if (compilationError) {
         setSubmissionResult(null);
@@ -663,6 +556,109 @@ int main() {
     }
   };
 
+  useEffect(() => {
+    if (problemId && token && isInitialized) {
+      getSubmissionsByProblem(problemId, token);
+    }
+  }, [problemId, token, isInitialized]);
+
+  useEffect(() => {
+    if (error) {
+      setTimeout(() => {
+        const errorElement = document.getElementById("error-section");
+        if (errorElement) {
+          errorElement.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+            inline: "nearest",
+          });
+        }
+      }, 200);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (submissionError) {
+      setTimeout(() => {
+        const submissionErrorElement = document.getElementById(
+          "submission-error-section"
+        );
+        if (submissionErrorElement) {
+          submissionErrorElement.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+            inline: "nearest",
+          });
+        }
+      }, 200);
+    }
+  }, [submissionError]);
+
+  useEffect(() => {
+    if (hasRun && !error && !submissionError) {
+      setTimeout(() => {
+        if (customInput.trim() && customInputExecuted && output) {
+          const customInputElement = document.getElementById(
+            "customInput-section"
+          );
+          if (customInputElement) {
+            customInputElement.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+              inline: "nearest",
+            });
+          }
+        } else if (testCaseResults.length > 0) {
+          const testCasesElement = document.getElementById("testCases-section");
+          if (testCasesElement) {
+            testCasesElement.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+              inline: "nearest",
+            });
+          }
+        }
+      }, 200);
+    }
+  }, [
+    hasRun,
+    error,
+    submissionError,
+    customInput,
+    customInputExecuted,
+    output,
+    testCaseResults,
+  ]);
+
+  useEffect(() => {
+    const hasAnyResponse = Object.values(responses).some((response) => {
+      return (
+        response &&
+        response !== "" &&
+        response !== null &&
+        response !== undefined
+      );
+    });
+
+    if (hasAnyResponse) {
+      setTimeout(() => {
+        const aiResponsesElement = document.getElementById("ai-responses");
+        console.log("AI responses element found:", !!aiResponsesElement);
+        if (aiResponsesElement) {
+          aiResponsesElement.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+            inline: "nearest",
+          });
+        }
+      }, 500);
+    }
+  }, [responses]);
+  useEffect(() => {
+    if (problemId) {
+      clearAllResponses();
+    }
+  }, [problemId, clearAllResponses]);
   if (!problem) {
     return null;
   }
@@ -673,14 +669,12 @@ int main() {
         <HeroSection />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Side - Problem Section with proper sticky positioning */}
           <div className="lg:col-span-1">
             <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-hidden">
               <ProblemSection problem={problem} />
             </div>
           </div>
 
-          {/* Right Side - Code Editor and Controls */}
           <div className="lg:col-span-1 space-y-4">
             <div className="sticky z-20 top-16 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 pb-2">
               <ActionButtons
@@ -691,7 +685,6 @@ int main() {
               />
             </div>
 
-            {/* Code Editor */}
             <div className="relative z-10">
               <CodeEditor
                 selectedLanguage={selectedLanguage}
@@ -705,7 +698,27 @@ int main() {
                 onCopyCode={copyCode}
                 onDownloadCode={downloadCode}
                 onResetCode={resetCode}
+                submissions={submissions}
+                onViewSubmissions={handleViewSubmissions}
               />
+              <SubmissionHistoryModal
+                isOpen={showHistoryModal}
+                onClose={() => setShowHistoryModal(false)}
+                submissions={submissions}
+                onViewCode={handleViewSubmissionCode}
+                isLoading={submissionLoading}
+              />
+
+              <SubmissionCodeModal
+                isOpen={showCodeModal}
+                onClose={() => setShowCodeModal(false)}
+                submission={selectedSubmission}
+                onBack={handleBackToHistory}
+              />
+            </div>
+
+            <div className="relative">
+              <AIResponseDisplay />
             </div>
 
             {submissionResult && (
@@ -713,7 +726,6 @@ int main() {
                 id="submission-result"
                 className="bg-white dark:bg-slate-800 rounded-lg border shadow-sm p-6"
               >
-                {/* Status Indicator */}
                 <div
                   className={`flex items-center space-x-3 ${
                     submissionResult.status === "accepted"
@@ -735,7 +747,6 @@ int main() {
                   </h3>
                 </div>
 
-                {/* Message */}
                 <p className="mt-2 text-gray-700 dark:text-gray-300">
                   {submissionResult.status === "accepted"
                     ? `🎉 Congratulations !! Your solution is correct`
@@ -743,7 +754,6 @@ int main() {
                       "Failed on a hidden test case"}
                 </p>
 
-                {/* Stats */}
                 <div className="mt-3 text-sm font-semibold text-gray-500 dark:text-white">
                   {submissionResult.status === "accepted"
                     ? `Happy Coding 😊. Attack more problems !!`
@@ -755,9 +765,11 @@ int main() {
               </div>
             )}
 
-            {/* Submission Error */}
             {submissionError && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div
+                id="submission-error-section"
+                className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4"
+              >
                 <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
                   <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                   <h4 className="font-medium">Submission Error</h4>
@@ -768,23 +780,23 @@ int main() {
               </div>
             )}
 
-            {/* Error Display - Show only when there's an error */}
             {error && (
-              <ErrorDisplay
-                error={error}
-                errorLine={errorLine}
-                output={output}
-              />
+              <div id="error-section">
+                <ErrorDisplay
+                  error={error}
+                  errorLine={errorLine}
+                  output={output}
+                />
+              </div>
             )}
 
-            {/* Test Cases Section - Hide when there's an error or submission result */}
             {!error &&
               !submissionResult &&
               problem.sampleTestCases &&
               problem.sampleTestCases.length > 0 && (
                 <div id="testCases-section">
                   <TestCasesSection
-                    testCases={problem.sampleTestCases.slice(0, 3).reverse()}
+                    testCases={problem.sampleTestCases.slice(0, 3)}
                     testCaseResults={testCaseResults}
                     executionTime={executionTime}
                     isRunning={isRunning}
@@ -803,17 +815,29 @@ int main() {
               </div>
             )}
 
-            {!error && !submissionResult && customInput.trim() && hasRun && (
-              <OutputPanel
-                isRunning={isRunning}
-                output={output}
-                customInput={customInput}
-                executionTime={executionTime}
-              />
-            )}
+            {!error &&
+              !submissionResult &&
+              customInput.trim() &&
+              customInputExecuted &&
+              hasRun && (
+                <OutputPanel
+                  isRunning={isRunning}
+                  output={output}
+                  customInput={customInput}
+                  executionTime={executionTime}
+                />
+              )}
           </div>
         </div>
       </div>
+      <FloatingAIAssistant
+        problem={problem}
+        code={code}
+        selectedLanguage={selectedLanguage}
+        error={error}
+        testCaseResults={testCaseResults}
+        submissionResult={submissionResult}
+      />
     </div>
   );
 };

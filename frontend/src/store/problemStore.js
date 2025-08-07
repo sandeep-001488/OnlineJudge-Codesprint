@@ -3,8 +3,6 @@ import axios from "axios";
 import { create } from "zustand";
 import { toast } from "sonner";
 
-const API_BASE_URL = "http://localhost:5000/api";
-
 export const useProblemStore = create((set, get) => ({
   problems: [],
   currentProblem: null,
@@ -27,8 +25,9 @@ export const useProblemStore = create((set, get) => ({
         ...filters,
       });
 
-      // FIXED: Use API_BASE_URL instead of hardcoded URL with typo
-      const response = await axios.get(`${API_BASE_URL}/problems?${params}`);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}problems?${params}`
+      );
 
       if (response.data.success) {
         set({
@@ -63,7 +62,9 @@ export const useProblemStore = create((set, get) => ({
   getProblemById: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE_URL}/problems/${id}`);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}problems/${id}`
+      );
 
       if (response.data.success) {
         set({
@@ -87,7 +88,7 @@ export const useProblemStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/problems/create`,
+        `${process.env.NEXT_PUBLIC_API_URL}problems/create`,
         problemData,
         {
           headers: {
@@ -122,7 +123,7 @@ export const useProblemStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.put(
-        `${API_BASE_URL}/problems/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}problems/${id}`,
         problemData,
         {
           headers: {
@@ -162,11 +163,14 @@ export const useProblemStore = create((set, get) => ({
   deleteProblem: async (id, token) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.delete(`${API_BASE_URL}/problems/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}problems/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.data.success) {
         set((state) => ({
@@ -200,7 +204,7 @@ export const useProblemStore = create((set, get) => ({
         : { params: { includePrivate: includePrivate.toString() } };
 
       const response = await axios.get(
-        `${API_BASE_URL}/testcases/problem/${problemId}`,
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/problem/${problemId}`,
         config
       );
 
@@ -226,7 +230,7 @@ export const useProblemStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/testcases/create`,
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/create`,
         testCaseData,
         {
           headers: {
@@ -261,7 +265,7 @@ export const useProblemStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.put(
-        `${API_BASE_URL}/testcases/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/${id}`,
         testCaseData,
         {
           headers: {
@@ -297,11 +301,14 @@ export const useProblemStore = create((set, get) => ({
   deleteTestCase: async (id, token) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.delete(`${API_BASE_URL}/testcases/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.data.success) {
         set((state) => ({
@@ -333,7 +340,7 @@ export const useProblemStore = create((set, get) => ({
       });
 
       const response = await axios.get(
-        `${API_BASE_URL}/problems/search?${params}`
+        `${process.env.NEXT_PUBLIC_API_URL}problems/search?${params}`
       );
 
       if (response.data.success) {
