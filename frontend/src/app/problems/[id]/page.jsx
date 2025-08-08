@@ -18,61 +18,14 @@ import AIResponseDisplay from "@/components/AIAssitant/AIResponseDisplay";
 import { useSubmissionStore } from "@/store/submissionStore";
 import { useAuthStore } from "@/store/authStore";
 import { useAIStore } from "@/store/aiStore";
+import { useCodeEditorStore } from "@/store/codeEditorStore";
 
 const ProblemPage = () => {
   const router = useRouter();
   const params = useParams();
   const problemId = params?.id;
   const { responses, clearAllResponses } = useAIStore();
-  const languages = [
-    {
-      value: "cpp",
-      label: "C++",
-      version: "GCC 11.2.0",
-      template: `#include<iostream>
-using namespace std;
 
-int main() {
-    // Your solution here
-    return 0;
-}`,
-    },
-    {
-      value: "python",
-      label: "Python",
-      version: "3.9.7",
-      template: `# Your solution here
-def solve():
-    pass
-
-solve()`,
-    },
-    {
-      value: "java",
-      label: "Java",
-      version: "OpenJDK 17",
-      template: `import java.util.*;
-
-public class Main {
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        // Your solution here
-    }
-}`,
-    },
-    {
-      value: "javascript",
-      label: "JavaScript",
-      version: "Node.js 18",
-      template: `const readline = require('readline');
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-
-// Your solution here`,
-    },
-  ];
   const { isInitialized, isLoggedIn, authHydrated, checkAuth, token } =
     useAuthStore();
 
@@ -83,23 +36,79 @@ const rl = readline.createInterface({
     isLoading: submissionLoading,
   } = useSubmissionStore();
 
+  const languages = [
+    {
+      value: "cpp",
+      label: "C++",
+      version: "GCC 11.2.0",
+      template: `#include<iostream>
+  using namespace std;
+  
+  int main() {
+      // Your solution here
+      return 0;
+  }`,
+    },
+    {
+      value: "python",
+      label: "Python",
+      version: "3.9.7",
+      template: `# Your solution here
+  def solve():
+      pass
+  
+  solve()`,
+    },
+    {
+      value: "java",
+      label: "Java",
+      version: "OpenJDK 17",
+      template: `import java.util.*;
+  
+  public class Main {
+      public static void main(String[] args) {
+          Scanner sc = new Scanner(System.in);
+          // Your solution here
+      }
+  }`,
+    },
+    {
+      value: "javascript",
+      label: "JavaScript",
+      version: "Node.js 18",
+      template: `const readline = require('readline');
+  const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+  });
+  
+  // Your solution here`,
+    },
+  ];
+
+  const {
+    selectedLanguage,
+    setCurrentProblem,
+    setSelectedLanguage,
+    setCode,
+    getCode,
+    resetCodeForProblem,
+    setCustomInput,
+    getCustomInput,
+  } = useCodeEditorStore();
+
+  const code = getCode(problemId, selectedLanguage);
+  const customInput = getCustomInput(problemId);
+
   const [problem, setProblem] = useState(null);
   const [isLoadingProblem, setIsLoadingProblem] = useState(true);
   const [problemError, setProblemError] = useState(null);
 
-  const [selectedLanguage, setSelectedLanguage] = useState("cpp");
-  const [code, setCode] = useState(() => {
-    const template = languages.find((l) => l.value === "cpp")?.template || "";
-
-    return template;
-  });
   const [output, setOutput] = useState("");
   const [isRunning, setIsRunning] = useState(false);
-  const [customInput, setCustomInput] = useState("");
   const [executionTime, setExecutionTime] = useState(null);
   const [memoryUsed, setMemoryUsed] = useState(null);
   const [error, setError] = useState(null);
-  const [errorLine, setErrorLine] = useState(null);
   const [isCopied, setIsCopied] = useState(false);
   const [showInput, setShowInput] = useState(false);
   const [testCaseResults, setTestCaseResults] = useState([]);
@@ -158,6 +167,16 @@ const rl = readline.createInterface({
           difficulty: data.problem.difficulty,
           tags: data.problem.tags || [],
         });
+
+        const currentCode = getCode(problemId, selectedLanguage);
+        if (!currentCode || currentCode.trim() === "") {
+          const languageConfig = languages.find(
+            (l) => l.value === selectedLanguage
+          );
+          if (languageConfig?.template) {
+            setCode(problemId, selectedLanguage, languageConfig.template);
+          }
+        }
       } catch (error) {
         console.error("Error fetching problem:", error);
 
@@ -181,23 +200,31 @@ const rl = readline.createInterface({
     };
 
     if (problemId && isInitialized) {
+      setCurrentProblem(problemId);
       fetchProblem();
     }
-  }, [problemId, isInitialized, token]);
+  }, [
+    problemId,
+    isInitialized,
+    token,
+    setCurrentProblem,
+    selectedLanguage,
+    getCode,
+    setCode,
+  ]);
 
   const handleCodeChange = useCallback(
     (newCode) => {
-      setCode(newCode);
+      setCode(problemId, selectedLanguage, newCode);
       if (error) {
         setError(null);
-        setErrorLine(null);
       }
       if (submissionResult) {
         setSubmissionResult(null);
         setSubmissionError(null);
       }
     },
-    [error, submissionResult]
+    [problemId, selectedLanguage, setCode, error, submissionResult]
   );
 
   const { editorRef, highlightError, clearErrorHighlight } =
@@ -205,13 +232,10 @@ const rl = readline.createInterface({
 
   const handleLanguageChange = (lang) => {
     setSelectedLanguage(lang);
-    const template = languages.find((l) => l.value === lang)?.template || "";
-    setCode(template);
     setOutput("");
     setExecutionTime(null);
     setMemoryUsed(null);
     setError(null);
-    setErrorLine(null);
     setTestCaseResults([]);
     setHasRun(false);
     setCustomInputExecuted(false);
@@ -247,16 +271,12 @@ const rl = readline.createInterface({
   };
 
   const resetCode = () => {
-    const template =
-      languages.find((l) => l.value === selectedLanguage)?.template || "";
-    setCode(template);
+    resetCodeForProblem(problemId, selectedLanguage);
     setOutput("");
     setExecutionTime(null);
     setMemoryUsed(null);
     setError(null);
-    setErrorLine(null);
     setTestCaseResults([]);
-    setCustomInput("");
     setShowInput(false);
     setHasRun(false);
     setCustomInputExecuted(false);
@@ -274,11 +294,37 @@ const rl = readline.createInterface({
       });
       return;
     }
+    const validateInput = (code, language) => {
+      const inputPatterns = {
+        cpp: /cin\s*>>\s*\w+|getline\s*\(|scanf\s*\(/,
+        python: /input\s*\(|sys\.stdin|raw_input\s*\(/,
+        java: /Scanner|BufferedReader|System\.in/,
+        javascript: /readline|process\.stdin/,
+      };
+
+      const hasInputHandling = inputPatterns[language]?.test(code);
+      const hasTestCaseInput = problem.sampleTestCases.some(
+        (tc) => tc.input && tc.input.trim() !== ""
+      );
+      return { hasInputHandling, hasTestCaseInput };
+    };
+    const { hasInputHandling, hasTestCaseInput } = validateInput(
+      code,
+      selectedLanguage
+    );
+
+    if (hasTestCaseInput && !hasInputHandling && !customInput.trim()) {
+      setError({
+        type: "input_validation",
+        message: `This problem requires input, but your code doesn't seem to read any input. Add input handling code or provide custom input.`,
+        line: null,
+      });
+      return;
+    }
 
     setIsRunning(true);
     setOutput("Compiling and executing...");
     setError(null);
-    setErrorLine(null);
     setTestCaseResults([]);
     setHasRun(true);
     setSubmissionResult(null);
@@ -286,7 +332,6 @@ const rl = readline.createInterface({
     setCustomInputExecuted(false);
     clearErrorHighlight();
     clearAllResponses();
-    const startTime = Date.now();
 
     try {
       const results = [];
@@ -318,23 +363,41 @@ const rl = readline.createInterface({
             line: result.line,
           };
           setError(errorInfo);
-          setErrorLine(result.line);
+          console.log(errorInfo);
           if (result.line) {
             highlightError(result.line);
           }
           break;
         }
+        const actualOutput = result.output?.trim() || "";
+        const expectedOutput = testCase.expectedOutput?.trim() || "";
 
-        results.push({
-          testCase: i + 1,
-          input: testCase.input,
-          expectedOutput: testCase.expectedOutput,
-          actualOutput: result.success ? result.output : result.error,
-          passed:
-            result.success &&
-            result.output?.trim() === testCase.expectedOutput?.trim(),
-          error: !result.success ? result.error : null,
-        });
+        if (result.success && result.executionTime) {
+          setExecutionTime(result.executionTime);
+        }
+        if (result.success && result.memory) {
+          setMemoryUsed(result.memory);
+        }
+        if (!actualOutput && expectedOutput && hasTestCaseInput) {
+          results.push({
+            testCase: i + 1,
+            input: testCase.input,
+            expectedOutput: testCase.expectedOutput,
+            actualOutput:
+              "No output - Check if your code reads input correctly",
+            passed: false,
+            error: "Possible input reading issue",
+          });
+        } else {
+          results.push({
+            testCase: i + 1,
+            input: testCase.input,
+            expectedOutput: testCase.expectedOutput,
+            actualOutput: actualOutput || "No output",
+            passed: result.success && actualOutput === expectedOutput,
+            error: !result.success ? result.error : null,
+          });
+        }
       }
 
       if (!hasError && customInput.trim()) {
@@ -357,20 +420,21 @@ const rl = readline.createInterface({
         if (customResult.success) {
           setOutput(customResult.output);
           setCustomInputExecuted(true);
+          if (customResult.executionTime) {
+            setExecutionTime(customResult.executionTime);
+          }
+          if (customResult.memory) {
+            setMemoryUsed(customResult.memory);
+          }
         } else if (!hasError) {
           setError({
             type: customResult.type || "runtime",
             message: customResult.error,
             line: customResult.line,
           });
-          setErrorLine(customResult.line);
           hasError = true;
         }
       }
-
-      const endTime = Date.now();
-      const execTime = endTime - startTime;
-      setExecutionTime(execTime);
 
       if (!hasError) {
         setTestCaseResults(results);
@@ -414,7 +478,6 @@ const rl = readline.createInterface({
     setSubmissionResult(null);
     setSubmissionError(null);
     setError(null);
-    setErrorLine(null);
     clearErrorHighlight();
     clearAllResponses();
 
@@ -471,7 +534,6 @@ const rl = readline.createInterface({
             line: result.line,
           };
           setError(compilationError);
-          setErrorLine(result.line);
           if (result.line) highlightError(result.line);
           break;
         }
@@ -691,7 +753,6 @@ const rl = readline.createInterface({
                 languages={languages}
                 code={code}
                 error={error}
-                errorLine={errorLine}
                 isCopied={isCopied}
                 editorRef={editorRef}
                 onLanguageChange={handleLanguageChange}
@@ -784,8 +845,8 @@ const rl = readline.createInterface({
               <div id="error-section">
                 <ErrorDisplay
                   error={error}
-                  errorLine={errorLine}
                   output={output}
+                  language={selectedLanguage}
                 />
               </div>
             )}
@@ -799,6 +860,7 @@ const rl = readline.createInterface({
                     testCases={problem.sampleTestCases.slice(0, 3)}
                     testCaseResults={testCaseResults}
                     executionTime={executionTime}
+                    memoryUsed={memoryUsed}
                     isRunning={isRunning}
                   />
                 </div>
@@ -809,7 +871,9 @@ const rl = readline.createInterface({
                 <CustomInput
                   customInput={customInput}
                   showInput={showInput}
-                  onInputChange={setCustomInput}
+                  onInputChange={(newInput) =>
+                    setCustomInput(problemId, newInput)
+                  }
                   onToggleInput={() => setShowInput(!showInput)}
                 />
               </div>

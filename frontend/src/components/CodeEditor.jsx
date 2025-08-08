@@ -46,7 +46,6 @@ export const CodeEditor = ({
   languages,
   code,
   error,
-  errorLine,
   isCopied,
   editorRef,
   onLanguageChange,
@@ -93,17 +92,7 @@ export const CodeEditor = ({
             <Badge variant="outline" className="text-xs hidden sm:inline-flex">
               {currentLanguage?.version}
             </Badge>
-            {error && errorLine && (
-              <Badge
-                variant="outline"
-                className={`text-xs flex items-center gap-1 ${getErrorBadgeColor(
-                  error.type
-                )} hidden lg:inline-flex`}
-              >
-                {getErrorIcon(error.type)}
-                Error on Line {errorLine}
-              </Badge>
-            )}
+         
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -184,18 +173,6 @@ export const CodeEditor = ({
             </Button>
           </div>
         )}
-
-        {error && errorLine && (
-          <Badge
-            variant="outline"
-            className={`text-xs flex items-center gap-1 ${getErrorBadgeColor(
-              error.type
-            )} lg:hidden w-fit mt-2`}
-          >
-            {getErrorIcon(error.type)}
-            Error on Line {errorLine}
-          </Badge>
-        )}
       </CardHeader>
 
       <CardContent className="p-0">
@@ -204,14 +181,6 @@ export const CodeEditor = ({
             ref={editorRef}
             className="min-h-[400px] lg:min-h-[500px] text-sm font-mono border-0 focus:outline-none [&_.cm-editor]:min-h-[400px] lg:[&_.cm-editor]:min-h-[500px] [&_.cm-content]:p-4 [&_.cm-focused]:outline-none [&_.cm-editor]:bg-transparent"
           />
-          {error && errorLine && (
-            <div className="flex items-center space-x-2 text-red-500 mt-2">
-              {getErrorIcon(error.type)}
-              <span>
-                Line {errorLine}: {error.type} error
-              </span>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

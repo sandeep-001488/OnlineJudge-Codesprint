@@ -21,6 +21,8 @@ const getErrorTitle = (errorType) => {
       return "Compilation Error";
     case "runtime":
       return "Runtime Error";
+    case "input_validation":
+      return "Input Validation Warning";
     case "network":
       return "Network Error";
     default:
@@ -42,6 +44,12 @@ const getErrorColor = (errorType) => {
         border: "border-orange-200 dark:border-orange-800",
         text: "text-orange-600 dark:text-orange-400",
       };
+    case "input_validation":
+      return {
+        bg: "bg-yellow-50 dark:bg-yellow-900/20",
+        border: "border-yellow-200 dark:border-yellow-800",
+        text: "text-yellow-600 dark:text-yellow-400",
+      };
     case "network":
       return {
         bg: "bg-red-50 dark:bg-red-900/20",
@@ -57,7 +65,7 @@ const getErrorColor = (errorType) => {
   }
 };
 
-export const ErrorDisplay = ({ error, errorLine, output }) => {
+export const ErrorDisplay = ({ error, output,language }) => {
   const errorColors = getErrorColor(error.type);
 
   return (
@@ -71,7 +79,10 @@ export const ErrorDisplay = ({ error, errorLine, output }) => {
           </div>
           <CardTitle className={`text-lg font-semibold ${errorColors.text}`}>
             {getErrorTitle(error.type)}
-            {errorLine && ` (Line ${errorLine})`}
+            {error &&
+              error.line !== null &&
+              !(language === "cpp" && error.type === "runtime") &&
+              ` (Line ${error.line})`}
           </CardTitle>
         </div>
       </CardHeader>
@@ -81,15 +92,21 @@ export const ErrorDisplay = ({ error, errorLine, output }) => {
           className={`p-4 rounded-lg border ${errorColors.bg} ${errorColors.border}`}
         >
           {error.message && (
-            <div className={`mb-4 font-medium ${errorColors.text}`}>
-              {error.message}
+            <div className={`mb-4 ${errorColors.text}`}>
+              <div className="font-semibold mb-2">Error Details:</div>
+              <pre className="text-sm font-mono whitespace-pre-wrap bg-gray-900 text-gray-100 p-3 rounded border overflow-x-auto">
+                {error.message}
+              </pre>
             </div>
           )}
 
-          {output && (
+          {output && output !== error.message && (
             <div
               className={`rounded p-3 ${errorColors.bg} border ${errorColors.border}`}
             >
+              <div className="font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                Raw Output:
+              </div>
               <pre
                 className={`text-sm font-mono whitespace-pre-wrap ${errorColors.text}`}
               >
@@ -103,10 +120,20 @@ export const ErrorDisplay = ({ error, errorLine, output }) => {
         <div className="mt-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
           <div className="text-sm text-gray-600 dark:text-gray-400">
             <strong>💡 Tip:</strong>{" "}
-            {error.type === "compilation" &&
-              "Check your syntax, missing semicolons, brackets, or variable declarations."}
-            {error.type === "runtime" &&
-              "Look for array bounds, null pointer access, or logical errors in your code."}
+            {error.type === "compilation" && (
+              <>Check line {error.line || "highlighted"} for syntax errors.</>
+            )}
+            {error.type === "runtime" && (
+              <>
+                {language === "cpp" ? (
+                  <>Check for invalid memory access </>
+                ) : (
+                  <>
+                    Check line {error.line || "highlighted"} for runtime issues.
+                  </>
+                )}
+              </>
+            )}
             {error.type === "network" &&
               "Check your internet connection and try running the code again."}
             {error.type === "unknown" &&

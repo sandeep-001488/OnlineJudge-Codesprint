@@ -5,6 +5,7 @@ import {
   XCircle,
   AlertCircle,
   Clock,
+  Database,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ export const TestCasesSection = ({
   testCases,
   testCaseResults = [],
   executionTime,
+  memoryUsed,
   isRunning,
 }) => {
   const passedCount = testCaseResults.filter(
@@ -36,8 +38,8 @@ export const TestCasesSection = ({
 
   return (
     <Card className="pb-1 bg-white/80 dark:bg-slate-900/80 border border-gray-200/50 dark:border-slate-700/50 backdrop-blur-xl shadow-2xl">
-      <CardHeader className=" border-b border-gray-100 dark:border-slate-800">
-        <div className="flex items-center justify-between">
+      <CardHeader className="border-b border-gray-100 dark:border-slate-800">
+        <div className="flex flex-wrap gap-y-3 items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg">
               <TestTube className="w-5 h-5 text-white" />
@@ -59,25 +61,36 @@ export const TestCasesSection = ({
             )}
           </div>
 
-          {/* Execution Time Badge */}
-          {executionTime && !isRunning && (
-            <Badge
-              variant="outline"
-              className="text-xs bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 flex items-center gap-1"
-            >
-              <Clock className="w-3 h-3" />
-              {executionTime}ms
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {isRunning && (
+              <Badge
+                variant="outline"
+                className="text-xs bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20 animate-pulse"
+              >
+                Running...
+              </Badge>
+            )}
 
-          {isRunning && (
-            <Badge
-              variant="outline"
-              className="text-xs bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-500/10 dark:text-yellow-400 dark:border-yellow-500/20 animate-pulse"
-            >
-              Running...
-            </Badge>
-          )}
+            {executionTime && !isRunning && (
+              <Badge
+                variant="outline"
+                className="text-xs bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20 flex items-center gap-1.5"
+              >
+                <Clock className="w-3 h-3" />
+                {executionTime}
+              </Badge>
+            )}
+
+            {memoryUsed && !isRunning && (
+              <Badge
+                variant="outline"
+                className="text-xs bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20 flex items-center gap-1.5"
+              >
+                <Database className="w-3 h-3" />
+                {memoryUsed}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
 
