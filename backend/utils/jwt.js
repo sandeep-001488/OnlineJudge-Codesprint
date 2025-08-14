@@ -6,9 +6,10 @@ export function generateAccessToken(payload) {
   });
 }
 
-export function generateRefreshToken(payload) {
+export function generateRefreshToken(payload, rememberMe = false) {
+  const expiresIn = rememberMe ? "15d" : "7d";
   return jwt.sign(payload, process.env.JWT_REFRESH_SECRET, {
-    expiresIn: "7d",
+    expiresIn,
   });
 }
  

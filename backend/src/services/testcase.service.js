@@ -32,8 +32,9 @@ export const createTestCase = async (
   };
 };
 
+
 export const getTestCasesByProblemId = async (problemId, user, query) => {
-  const { includePrivate } = query;
+  const { includePrivate, forSubmission } = query;
 
   const problem = await Problem.findById(problemId);
   if (!problem) throw new Error("Problem not found");
@@ -45,8 +46,11 @@ export const getTestCasesByProblemId = async (problemId, user, query) => {
   const isPrivileged =
     user?.role?.includes("admin") || user?.role?.includes("problemSetter");
 
+  
   const shouldIncludePrivate =
-    user && (isOwner || isPrivileged) && includePrivate === true;
+    user && 
+    ((forSubmission === true) || 
+     ((isOwner || isPrivileged) && includePrivate === true)); 
 
   if (!shouldIncludePrivate) {
     q.isPublic = true;

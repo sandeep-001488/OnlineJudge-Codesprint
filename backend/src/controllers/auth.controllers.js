@@ -1,4 +1,4 @@
-import { loginUser, registerUser } from "../services/auth.service.js";
+import { loginUser, registerUser, resetUserPassword } from "../services/auth.service.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -30,7 +30,6 @@ export async function Signup(req, res) {
     res.status(400).json({ message: error.message });
   }
 }
-
 export async function Login(req, res) {
   try {
     const user = await loginUser(req.body);
@@ -39,10 +38,13 @@ export async function Login(req, res) {
       id: user.id,
       role: user.role,
     });
-    const refreshToken = generateRefreshToken({
-      id: user.id,
-      role: user.role,
-    });
+    const refreshToken = generateRefreshToken(
+      {
+        id: user.id,
+        role: user.role,
+      },
+      req.body.rememberMe
+    ); 
 
     res.status(200).json({
       message: "User logged in successfully",
@@ -54,7 +56,34 @@ export async function Login(req, res) {
         lastName: user.lastName,
         username: user.username,
         email: user.email,
-        role: user.role, 
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+}
+export async function ResetPassword(req, res) {
+  try {
+    const { identifier, newPassword } = req.body;
+
+    if (!identifier || !newPassword) {
+      return res.status(400).json({
+        message: "Identifier and new password are required",
+      });
+    }
+
+    const user = await resetUserPassword({ identifier, newPassword });
+
+    res.status(200).json({
+      message: "Password reset successfully",
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {

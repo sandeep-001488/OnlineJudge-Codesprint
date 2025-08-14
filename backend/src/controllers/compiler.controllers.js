@@ -13,9 +13,16 @@ export default async function runCodeController(req, res) {
     res.status(200).json(response.data);
   } catch (err) {
     console.error("Compiler error:", err.message);
-    if (err.response) {
+    if (err.response && err.response.data) {
       console.error("Compiler response error:", err.response.data);
+      res.status(400).json(err.response.data);
+    } else {
+      res.status(500).json({
+        success: false,
+        type: "network",
+        error: err.message,
+        line: null,
+      });
     }
-    res.status(500).json({ error: err.message });
   }
 }

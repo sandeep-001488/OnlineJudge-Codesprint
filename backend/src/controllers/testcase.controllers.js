@@ -22,6 +22,7 @@ export const getTestCasesByProblemIdController = async (req, res) => {
   try {
     const queryParams = {
       includePrivate: req.query.includePrivate === "true",
+      forSubmission: req.query.forSubmission === "true", 
       limit: parseInt(req.query.limit) || 1000,
       page: parseInt(req.query.page) || 1,
     };

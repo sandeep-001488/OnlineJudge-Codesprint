@@ -56,3 +56,29 @@ export async function loginUser({ identifier, password }) {
     role: user.role, 
   };
 }
+
+export async function resetUserPassword({ identifier, newPassword }) {
+  const user = await User.findOne({
+    $or: [{ email: identifier }, { username: identifier }],
+  });
+
+  if (!user) throw new Error("User not found");
+
+  if (newPassword.length < 4) {
+    throw new Error("Password must be at least 4 characters long");
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  user.password = hashedPassword;
+  await user.save();
+
+  return {
+    id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    username: user.username,
+    role: user.role,
+  };
+}
