@@ -12,7 +12,7 @@ app.use(express.json());
 app.use("/api", codeRoutes);
 
 app.get("/", (req, res) => {
-  res.send("Welcome to the Online Judge API");
+  res.send("Welcome to the Online Judge compiler  API");
 });
 
 app.get("/health", (req, res) => {
