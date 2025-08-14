@@ -21,10 +21,24 @@ const executeCode = async (language, code, input) => {
   const { filePath, inputPath, jobId } = generateFile(language, code, input);
 
   try {
-    const output = await executor(filePath, inputPath, jobId);
-    return output;
-  } catch (error) {
-    throw error;
+    const startTime = process.hrtime.bigint();
+    const startMemory = process.memoryUsage().heapUsed;
+
+    const result = await executor(filePath, inputPath, jobId);
+
+    const endTime = process.hrtime.bigint();
+    const endMemory = process.memoryUsage().heapUsed;
+
+    const executionTime = Number(endTime - startTime) / 1_000_000;
+    const memoryUsedKB = Math.round((endMemory - startMemory) / 1024); 
+
+    return {
+      output: result,
+      executionTime,
+      memoryUsed: memoryUsedKB < 0 ? 0 : memoryUsedKB,
+    };
+  } catch (err) {
+    throw err;
   }
 };
 

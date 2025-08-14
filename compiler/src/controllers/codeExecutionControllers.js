@@ -4,15 +4,13 @@ const executeCode = async (req, res) => {
   const { language, code, input } = req.body;
 
   try {
-    const startTime = Date.now();
     const result = await runCode(language, code, input);
-    const executionTime = Date.now() - startTime;
 
     return res.json({
       success: true,
-      output: result || "Program executed successfully with no output",
-      executionTime: `${executionTime}ms`,
-      memory: "N/A",
+      output: result.output || "Program executed successfully with no output",
+      executionTime: `${result.executionTime.toFixed(2)} ms`,
+      memory: `${result.memoryUsed} KB`,
       language,
     });
   } catch (error) {

@@ -3,7 +3,6 @@ const cors = require("cors");
 const codeRoutes = require("./src/routes/codeRoutes");
 const { errorHandler } = require("./src/utils/errorHandler");
 
-
 const app = express();
 
 app.use(cors());

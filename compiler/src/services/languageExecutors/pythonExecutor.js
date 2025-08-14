@@ -32,7 +32,6 @@ const executePython = async (filePath, inputPath, jobId) => {
           }
 
           cleanupFiles([filePath, inputPath]);
-          // console.error(`[${jobId}] Python execution failed:`, err.message);
 
           if (err.killed) {
             return reject({

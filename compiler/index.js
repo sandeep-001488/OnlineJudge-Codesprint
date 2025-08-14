@@ -6,6 +6,6 @@ app.listen(PORT, (error) => {
     console.error("Error while starting the server:", error);
     process.exit(1);
   } else {
-    console.log(`🚀Compiler  Server running at port ${PORT}`);
+    console.log(`🚀 Compiler Server running at port ${PORT}`);
   }
 });
