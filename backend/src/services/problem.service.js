@@ -9,7 +9,7 @@ export async function createProblem(problemData, userId) {
   return newProblem;
 }
 
-export async function getAllProblems(filters = {}, skip = 0, limit = 10) {
+export async function getAllProblems(filters = {}, skip = 0, limit = 12) {
   try {
     const total = await Problem.countDocuments(filters);
 
@@ -17,24 +17,23 @@ export async function getAllProblems(filters = {}, skip = 0, limit = 10) {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("createdBy", "username")  
+      .populate("createdBy", "username")
       .lean();
 
     return {
       problems,
-      total, 
+      total,
     };
   } catch (error) {
     throw new Error(`Error fetching problems: ${error.message}`);
   }
 }
 
-
 export async function getProblemById(id) {
   return await Problem.findById(id).populate("createdBy", "username email");
 }
 
-// Update problem 
+// Update problem
 export async function updateProblem(problemId, updates, userId) {
   const problem = await Problem.findById(problemId);
   if (!problem) throw new Error("Problem not found");
@@ -47,7 +46,6 @@ export async function updateProblem(problemId, updates, userId) {
   return problem;
 }
 
-// Delete problem
 export async function deleteProblem(problemId, userId) {
   const problem = await Problem.findById(problemId);
   if (!problem) throw new Error("Problem not found");
@@ -55,7 +53,7 @@ export async function deleteProblem(problemId, userId) {
     throw new Error("You are not authorized to delete this problem");
   }
 
-  await problem.remove();
+  await problem.deleteOne();
   return;
 }
 

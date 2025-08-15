@@ -32,7 +32,6 @@ export const createTestCase = async (
   };
 };
 
-
 export const getTestCasesByProblemId = async (problemId, user, query) => {
   const { includePrivate, forSubmission } = query;
 
@@ -46,11 +45,10 @@ export const getTestCasesByProblemId = async (problemId, user, query) => {
   const isPrivileged =
     user?.role?.includes("admin") || user?.role?.includes("problemSetter");
 
-  
   const shouldIncludePrivate =
-    user && 
-    ((forSubmission === true) || 
-     ((isOwner || isPrivileged) && includePrivate === true)); 
+    user &&
+    (forSubmission === true ||
+      ((isOwner || isPrivileged) && includePrivate === true));
 
   if (!shouldIncludePrivate) {
     q.isPublic = true;
@@ -97,13 +95,6 @@ export const updateTestCase = async (id, data, user) => {
   const isPrivileged =
     user.role?.includes("admin") || user.role?.includes("problemSetter");
 
-  console.log("Update permission check:", {
-    userId,
-    problemCreatedBy: testCase.problemId.createdBy,
-    isOwner,
-    isPrivileged,
-  });
-
   if (!isOwner && !isPrivileged) {
     throw new Error("You can only update test cases for your own problems");
   }
@@ -128,13 +119,6 @@ export const deleteTestCase = async (id, user) => {
   const isOwner = testCase.problemId.createdBy.toString() === userId.toString();
   const isPrivileged =
     user.role?.includes("admin") || user.role?.includes("problemSetter");
-
-  console.log("Delete permission check:", {
-    userId,
-    problemCreatedBy: testCase.problemId.createdBy,
-    isOwner,
-    isPrivileged,
-  });
 
   if (!isOwner && !isPrivileged) {
     throw new Error("You can only delete test cases for your own problems");

@@ -27,7 +27,6 @@ router.post(
   createTestCaseController
 );
 
-// Update test case
 router.put(
   "/:id",
   authMiddleware,
@@ -35,7 +34,6 @@ router.put(
   updateTestCaseController
 );
 
-// Delete test case
 router.delete(
   "/:id",
   authMiddleware,

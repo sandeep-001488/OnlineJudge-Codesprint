@@ -26,21 +26,17 @@ export async function createProblemController(req, res) {
 
 export async function getAllProblemsController(req, res) {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 12);
     const difficulty = req.query.difficulty;
-    const tag = req.query.tag;
+
 
     const filters = {};
-    if (difficulty && difficulty !== "all") {
+    if (difficulty && difficulty !== "all" && difficulty !== "undefined") {
       filters.difficulty = difficulty;
     }
-    if (tag && tag !== "all") {
-      filters.tags = { $in: [tag] };
-    }
-
     const skip = (page - 1) * limit;
-
+   
     const result = await getAllProblems(filters, skip, limit);
 
     res.status(200).json({
@@ -119,25 +115,24 @@ export async function deleteProblemController(req, res) {
 
 export async function searchProblemController(req, res) {
   try {
-    const { q, difficulty, tag } = req.query;
+    const { q, difficulty } = req.query;
 
-    // Build search filters
     const filters = {};
-    if (q) {
+
+    if (q && q.trim()) {
       filters.$or = [
-        { title: { $regex: q, $options: "i" } },
-        { description: { $regex: q, $options: "i" } },
-        { tags: { $in: [new RegExp(q, "i")] } },
+        { title: { $regex: q.trim(), $options: "i" } },
+        { tags: { $elemMatch: { $regex: q.trim(), $options: "i" } } },
       ];
     }
+
     if (difficulty && difficulty !== "all") {
       filters.difficulty = difficulty;
     }
-    if (tag && tag !== "all") {
-      filters.tags = { $in: [tag] };
-    }
+
 
     const problems = await searchProblems(filters);
+
     res.status(200).json({
       success: true,
       problems,
