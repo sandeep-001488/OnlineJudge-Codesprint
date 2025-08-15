@@ -1,5 +1,5 @@
-import React from 'react'
-import { Code } from 'lucide-react';
+import React from "react";
+import { Code } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -11,16 +11,16 @@ const Footer = () => {
               <Code className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              CodeJudge
+              CodeSprint
             </span>
           </div>
           <div className="text-gray-600 dark:text-gray-400">
-            © 2025 CodeJudge. All rights reserved.
+            © 2025 CodeSprint. All rights reserved.
           </div>
         </div>
       </div>
     </footer>
   );
-}
+};
 
-export default Footer
+export default Footer;

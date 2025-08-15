@@ -32,7 +32,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import axios from "axios";
 import { useAuthStore } from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -50,14 +49,13 @@ export default function ProblemSetterForm() {
     sampleTestCases: [{ input: "", expectedOutput: "", explanation: "" }],
   });
 
-  // Separate preview states for each field
   const [previewModes, setPreviewModes] = useState({
     title: false,
     description: false,
     inputFormat: false,
     outputFormat: false,
     constraints: false,
-    testCases: {}, // Will store preview state for each test case explanation
+    testCases: {}, 
   });
 
   const [currentTag, setCurrentTag] = useState("");
@@ -123,7 +121,6 @@ export default function ProblemSetterForm() {
   };
 
   const addTestCase = () => {
-    // Add new test case at the beginning (index 0)
     setProblemData((prev) => ({
       ...prev,
       sampleTestCases: [
@@ -140,7 +137,6 @@ export default function ProblemSetterForm() {
         sampleTestCases: prev.sampleTestCases.filter((_, i) => i !== index),
       }));
 
-      // Clean up preview state for removed test case
       setPreviewModes((prev) => ({
         ...prev,
         testCases: {
@@ -173,7 +169,6 @@ export default function ProblemSetterForm() {
 
   const togglePreviewMode = (field, testCaseIndex = null) => {
     if (testCaseIndex !== null) {
-      // Handle test case explanation preview
       setPreviewModes((prev) => ({
         ...prev,
         testCases: {
@@ -182,7 +177,6 @@ export default function ProblemSetterForm() {
         },
       }));
     } else {
-      // Handle other field previews
       setPreviewModes((prev) => ({
         ...prev,
         [field]: !prev[field],
@@ -272,7 +266,6 @@ export default function ProblemSetterForm() {
               </p>
             );
           } else if (line.includes("**")) {
-            // Handle inline bold text
             const parts = line.split("**");
             return (
               <p key={i} className="mb-2 leading-relaxed">
@@ -398,7 +391,7 @@ export default function ProblemSetterForm() {
             </TabsList>
           </div>
 
-          {/* Mobile Tabs - Vertical layout on small screens */}
+          {/* Mobile Tabs - Vertical layout on small screen */}
           <div className="md:hidden mb-8">
             <TabsList className="flex flex-col h-auto w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-2 shadow-lg rounded-xl p-2 space-y-2">
               <TabsTrigger
@@ -432,7 +425,6 @@ export default function ProblemSetterForm() {
             </TabsList>
           </div>
 
-          {/* Basic Information Tab */}
           <TabsContent value="basic" className="space-y-6">
             <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
               <CardHeader className="pb-6">
@@ -442,7 +434,6 @@ export default function ProblemSetterForm() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Title with Preview */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="title" className="text-base font-semibold">
@@ -475,7 +466,6 @@ export default function ProblemSetterForm() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Difficulty */}
                   <div className="space-y-2">
                     <Label className="text-base font-semibold">
                       Difficulty Level *
@@ -512,7 +502,6 @@ export default function ProblemSetterForm() {
                     </Select>
                   </div>
 
-                  {/* Current Difficulty Display */}
                   <div className="space-y-2">
                     <Label className="text-base font-semibold">
                       Selected Difficulty
@@ -542,7 +531,6 @@ export default function ProblemSetterForm() {
                   </div>
                 </div>
 
-                {/* Tags */}
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">Tags</Label>
                   <div className="flex gap-2">
@@ -586,7 +574,6 @@ export default function ProblemSetterForm() {
             </Card>
           </TabsContent>
 
-          {/* Description Tab */}
           <TabsContent value="description" className="space-y-6">
             <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
               <CardHeader className="pb-6">
@@ -640,10 +627,8 @@ Given an array of integers, find the maximum sum of a contiguous subarray.
             </Card>
           </TabsContent>
 
-          {/* I/O Format Tab */}
           <TabsContent value="format" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Input Format with Preview */}
               <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
@@ -676,7 +661,6 @@ Example:
                 </CardContent>
               </Card>
 
-              {/* Output Format with Preview */}
               <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
@@ -709,7 +693,6 @@ Example:
               </Card>
             </div>
 
-            {/* Constraints with Preview */}
             <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
@@ -745,7 +728,6 @@ Example:
             </Card>
           </TabsContent>
 
-          {/* Test Cases Tab */}
           <TabsContent value="testcases" className="space-y-6">
             <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
               <CardHeader className="pb-6">
@@ -882,7 +864,6 @@ Example:
               </CardContent>
             </Card>
 
-            {/* Submit Section - Only shown in Test Cases tab */}
             <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center space-y-4">

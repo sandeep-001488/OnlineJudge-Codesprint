@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 export const ProblemSection = ({ problem }) => {
-
   const renderMarkdownPreview = (text) => {
     if (!text)
       return (
@@ -94,8 +93,7 @@ export const ProblemSection = ({ problem }) => {
   };
 
   return (
-    <Card className="bg-white/80 dark:bg-slate-900/80 border border-gray-200/50 dark:border-slate-700/50 backdrop-blur-xl shadow-2xl h-full top-50">
-      {/* Fixed Header - This stays at the top */}
+    <Card className="bg-white/80 dark:bg-slate-900/80 border border-gray-200/50 dark:border-slate-700/50 backdrop-blur-xl shadow-2xl h-full top-50  ">
       <CardHeader className="pb-4 border-b border-gray-100 dark:border-slate-800  top-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl  rounded-t-lg">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
@@ -126,9 +124,7 @@ export const ProblemSection = ({ problem }) => {
         </div>
       </CardHeader>
 
-      {/* Scrollable Content - This scrolls independently */}
       <CardContent className="p-6 space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
-        {/* Problem Description - NOW WITH MARKDOWN RENDERING */}
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             Problem Description
@@ -140,7 +136,6 @@ export const ProblemSection = ({ problem }) => {
 
         <Separator className="bg-gray-200 dark:bg-slate-700" />
 
-        {/* Input Format - NOW WITH MARKDOWN RENDERING */}
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             📥 Input Format
@@ -152,7 +147,6 @@ export const ProblemSection = ({ problem }) => {
           </div>
         </div>
 
-        {/* Output Format - NOW WITH MARKDOWN RENDERING */}
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             📤 Output Format
@@ -166,13 +160,12 @@ export const ProblemSection = ({ problem }) => {
 
         <Separator className="bg-gray-200 dark:bg-slate-700" />
 
-        {/* Constraints - NOW WITH MARKDOWN RENDERING */}
         <div className="space-y-3">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             ⚠️ Constraints
           </h3>
           <div className="bg-yellow-50 dark:bg-yellow-500/5 rounded-lg p-4 border border-yellow-200 dark:border-yellow-500/20">
-            <div className="text-sm text-yellow-800 dark:text-yellow-300">
+            <div className="text-sm text-yellow-800 dark:text-yellow-300 ">
               {renderMarkdownPreview(problem.constraints)}
             </div>
           </div>
@@ -180,7 +173,6 @@ export const ProblemSection = ({ problem }) => {
 
         <Separator className="bg-gray-200 dark:bg-slate-700" />
 
-        {/* Sample Test Cases - EXPLANATION NOW WITH MARKDOWN RENDERING */}
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             🧪 Sample Test Cases
@@ -202,8 +194,8 @@ export const ProblemSection = ({ problem }) => {
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                       Input:
                     </span>
-                    <div className="bg-white dark:bg-slate-900 rounded p-3 mt-1 border border-gray-200 dark:border-slate-600">
-                      <pre className="text-sm font-mono text-gray-700 dark:text-gray-300">
+                    <div className="bg-white dark:bg-slate-900 rounded p-3 mt-1 border border-gray-200 dark:border-slate-600 w-full">
+                      <pre className="text-sm font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all overflow-visible">
                         {testCase.input}
                       </pre>
                     </div>
@@ -213,8 +205,8 @@ export const ProblemSection = ({ problem }) => {
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                       Output:
                     </span>
-                    <div className="bg-white dark:bg-slate-900 rounded p-3 mt-1 border border-gray-200 dark:border-slate-600">
-                      <pre className="text-sm font-mono text-gray-700 dark:text-gray-300">
+                    <div className="bg-white dark:bg-slate-900 rounded p-3 mt-1 border border-gray-200 dark:border-slate-600 w-full">
+                      <pre className="text-sm font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all overflow-visible">
                         {testCase.expectedOutput}
                       </pre>
                     </div>

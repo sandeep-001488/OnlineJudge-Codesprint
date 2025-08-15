@@ -1,9 +1,8 @@
+
 "use client";
 import axios from "axios";
 import { create } from "zustand";
 import { toast } from "sonner";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const useTestCaseStore = create((set, get) => ({
   testCases: [],
@@ -17,6 +16,156 @@ export const useTestCaseStore = create((set, get) => ({
     pages: 0,
   },
 
+  getTestCasesForViewing: async (problemId, token = null) => {
+    set({ isLoading: true, error: null });
+    try {
+      const config = {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        params: {
+          includePrivate: "true", 
+          limit: 1000,
+        },
+      };
+
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/problem/${problemId}`,
+        config
+      );
+
+      if (response.data.success) {
+        const testCases = response.data.testCases || [];
+        set({
+          testCases,
+          isLoading: false,
+        });
+        return testCases;
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch test cases";
+      set({
+        error: errorMessage,
+        isLoading: false,
+        testCases: [],
+      });
+      toast.error(errorMessage);
+      return [];
+    }
+  },
+
+  getTestCasesForSubmission: async (problemId, token) => {
+    set({ isLoading: true, error: null });
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          forSubmission: "true",
+          limit: 1000,
+        },
+      };
+
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/problem/${problemId}`,
+        config
+      );
+
+      if (response.data.success) {
+        const testCases = response.data.testCases || [];
+        set({
+          testCases,
+          isLoading: false,
+        });
+        return testCases;
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Failed to fetch test cases for submission";
+      set({
+        error: errorMessage,
+        isLoading: false,
+        testCases: [],
+      });
+      toast.error(errorMessage);
+      return [];
+    }
+  },
+
+  getPublicTestCases: async (problemId) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/problem/${problemId}`,
+        {
+          params: {
+            includePrivate: "false",
+            limit: 1000,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        const testCases = response.data.testCases || [];
+        set({
+          testCases,
+          isLoading: false,
+        });
+        return testCases;
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch public test cases";
+      set({
+        error: errorMessage,
+        isLoading: false,
+        testCases: [],
+      });
+      toast.error(errorMessage);
+      return [];
+    }
+  },
+
+  getTestCasesByProblemId: async (
+    problemId,
+    { includePrivate = false, forSubmission = false, token = null } = {}
+  ) => {
+    set({ isLoading: true, error: null });
+    try {
+      const config = {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        params: {
+          includePrivate: includePrivate.toString(),
+          forSubmission: forSubmission.toString(),
+          limit: 1000,
+        },
+      };
+
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/problem/${problemId}`,
+        config
+      );
+
+      if (response.data.success) {
+        const testCases = response.data.testCases || [];
+        set({
+          testCases,
+          isLoading: false,
+        });
+        return testCases;
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch test cases";
+      set({
+        error: errorMessage,
+        isLoading: false,
+        testCases: [],
+      });
+      toast.error(errorMessage);
+      return [];
+    }
+  },
+
   getAllTestCases: async (page = 1, limit = 100, token) => {
     set({ isLoading: true, error: null });
     try {
@@ -25,11 +174,14 @@ export const useTestCaseStore = create((set, get) => ({
         limit: limit.toString(),
       });
 
-      const response = await axios.get(`${API_BASE_URL}/testcases?${params}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}testcases?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.data.success) {
         set({
@@ -56,88 +208,17 @@ export const useTestCaseStore = create((set, get) => ({
     }
   },
 
-  getTestCasesByProblemId: async (
-    problemId,
-    includePrivate = true,
-    token = null
-  ) => {
-    set({ isLoading: true, error: null });
-    try {
-      // Always include auth headers if token is available
-      const config = {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        params: {
-          includePrivate: includePrivate.toString(),
-          limit: 1000,
-        },
-      };
-
-      console.log("Store - Making request:", {
-        problemId,
-        includePrivate,
-        hasToken: !!token,
-        config: {
-          headers: config.headers,
-          params: config.params,
-        },
-      });
-
-      const response = await axios.get(
-        `${API_BASE_URL}/testcases/problem/${problemId}`,
-        config
-      );
-
-      if (response.data.success) {
-        const testCases = response.data.testCases || [];
-        console.log(
-          `Store - Fetched ${testCases.length} test cases for problem ${problemId}`,
-          {
-            includePrivate,
-            hasToken: !!token,
-            publicCount: testCases.filter((tc) => tc.isPublic).length,
-            privateCount: testCases.filter((tc) => !tc.isPublic).length,
-            testCases: testCases.map((tc) => ({
-              id: tc._id,
-              isPublic: tc.isPublic,
-            })),
-          }
-        );
-
-        set({
-          testCases,
-          isLoading: false,
-        });
-        return testCases;
-      }
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to fetch test cases";
-
-      console.error("Store - Error fetching test cases:", {
-        error: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        hasToken: !!token,
-      });
-
-      set({
-        error: errorMessage,
-        isLoading: false,
-        testCases: [],
-      });
-      toast.error(errorMessage);
-      return [];
-    }
-  },
-
   getTestCaseById: async (id, token) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.get(`${API_BASE_URL}/testcases/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.data.success) {
         set({
@@ -164,7 +245,7 @@ export const useTestCaseStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/testcases/create`,
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/create`,
         testCaseData,
         {
           headers: {
@@ -204,7 +285,7 @@ export const useTestCaseStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.put(
-        `${API_BASE_URL}/testcases/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/${id}`,
         testCaseData,
         {
           headers: {
@@ -215,10 +296,6 @@ export const useTestCaseStore = create((set, get) => ({
 
       if (response.data.success) {
         const updatedTestCase = response.data.testCase;
-        console.log("Updated test case:", {
-          id: updatedTestCase._id,
-          isPublic: updatedTestCase.isPublic,
-        });
 
         set((state) => ({
           testCases: state.testCases.map((tc) =>
@@ -249,11 +326,14 @@ export const useTestCaseStore = create((set, get) => ({
   deleteTestCase: async (id, token) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.delete(`${API_BASE_URL}/testcases/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.data.success) {
         set((state) => ({
@@ -282,7 +362,7 @@ export const useTestCaseStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.post(
-        `${API_BASE_URL}/testcases/bulk-create`,
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/bulk-create`,
         { testCases: testCasesData },
         {
           headers: {
@@ -290,7 +370,6 @@ export const useTestCaseStore = create((set, get) => ({
           },
         }
       );
-
       if (response.data.success) {
         set((state) => ({
           testCases: [...state.testCases, ...(response.data.testCases || [])],
@@ -325,7 +404,7 @@ export const useTestCaseStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.delete(
-        `${API_BASE_URL}/testcases/bulk-delete`,
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/bulk-delete`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -364,7 +443,7 @@ export const useTestCaseStore = create((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await axios.patch(
-        `${API_BASE_URL}/testcases/${id}/toggle-privacy`,
+        `${process.env.NEXT_PUBLIC_API_URL}testcases/${id}/toggle-privacy`,
         {},
         {
           headers: {
@@ -400,51 +479,12 @@ export const useTestCaseStore = create((set, get) => ({
     }
   },
 
-  // Validate test case format
-  validateTestCase: async (testCaseData, token) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axios.post(
-        `${API_BASE_URL}/testcases/validate`,
-        testCaseData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        set({ isLoading: false });
-        toast.success("Test case format is valid");
-        return response.data.validation;
-      }
-    } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Test case validation failed";
-      set({
-        error: errorMessage,
-        isLoading: false,
-      });
-      console.error("Error validating test case:", error);
-      toast.error(errorMessage);
-      throw error;
-    }
-  },
-
-  // Clear current test case
+  // Utility methods
   clearCurrentTestCase: () => set({ currentTestCase: null }),
-
-  // Clear test cases
   clearTestCases: () => set({ testCases: [], error: null }),
-
-  // Clear error
   clearError: () => set({ error: null }),
-
-  // Set current test case
   setCurrentTestCase: (testCase) => set({ currentTestCase: testCase }),
 
-  // Reset store to initial state
   resetStore: () =>
     set({
       testCases: [],
@@ -459,34 +499,11 @@ export const useTestCaseStore = create((set, get) => ({
       },
     }),
 
-  // Filter test cases locally
   filterTestCases: (filterFn) => {
     const state = get();
-    const filteredTestCases = state.testCases.filter(filterFn);
-    return filteredTestCases;
+    return state.testCases.filter(filterFn);
   },
 
-  // Sort test cases locally
-  sortTestCases: (sortFn) => {
-    set((state) => ({
-      testCases: [...state.testCases].sort(sortFn),
-    }));
-  },
-
-  // Group test cases by problem
-  groupTestCasesByProblem: () => {
-    const state = get();
-    return state.testCases.reduce((groups, testCase) => {
-      const problemId = testCase.problemId;
-      if (!groups[problemId]) {
-        groups[problemId] = [];
-      }
-      groups[problemId].push(testCase);
-      return groups;
-    }, {});
-  },
-
-  // Get test case statistics
   getTestCaseStats: () => {
     const state = get();
     const total = state.testCases.length;
@@ -500,7 +517,6 @@ export const useTestCaseStore = create((set, get) => ({
     };
   },
 
-  // Update test case locally (for optimistic updates)
   updateTestCaseLocally: (id, updates) => {
     set((state) => ({
       testCases: state.testCases.map((tc) =>

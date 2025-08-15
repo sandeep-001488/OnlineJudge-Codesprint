@@ -3,37 +3,77 @@ import axios from "axios";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+const normalizeUser = (user) => {
+  if (!user) return null;
+
+  const normalizedUser = {
+    ...user,
+    _id: user._id || user.id,
+    id: user.id || user._id,
+  };
+
+  return normalizedUser;
+};
+
 export const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
+      rememberMe: false,
       token: null,
+      refreshToken: null,
       isLoggedIn: false,
       isLoading: false,
       error: null,
       isInitialized: false,
       isHydrated: false,
+      redirectUrl: null,
 
       setHydrated: () => {
         set({ isHydrated: true });
       },
 
+      setRedirectUrl: (url) => {
+        set({ redirectUrl: url });
+      },
+
+      clearRedirectUrl: () => {
+        set({ redirectUrl: null });
+      },
+
+      getAndClearRedirectUrl: () => {
+        const { redirectUrl } = get();
+        get().clearRedirectUrl();
+        return redirectUrl || "/";
+      },
+
       refreshAccessToken: async () => {
-        const { refreshToken } = get();
+        const { refreshToken, rememberMe } = get();
 
         if (!refreshToken) {
+          console.log("No refresh token available");
           get().logout();
           return null;
         }
 
         try {
+          console.log("Attempting to refresh token...");
           const res = await axios.post(
             `${process.env.NEXT_PUBLIC_API_URL}auth/refresh-token`,
-            { refreshToken }
+            {
+              refreshToken,
+              rememberMe, 
+            }
           );
 
-          const { accessToken } = res.data;
-          set({ token: accessToken });
+          const { accessToken, refreshToken: newRefreshToken } = res.data;
+
+          set({
+            token: accessToken,
+            refreshToken: newRefreshToken || refreshToken, 
+          });
+
+          console.log("Token refreshed successfully");
           return accessToken;
         } catch (error) {
           console.error("Token refresh failed:", error);
@@ -54,14 +94,23 @@ export const useAuthStore = create(
           );
           const { user, accessToken, refreshToken } = res.data;
 
+          const normalizedUser = normalizeUser(user);
+
           set({
-            user,
+            user: normalizedUser,
             token: accessToken,
             refreshToken,
+            rememberMe: credentials.rememberMe || false,
             isLoggedIn: true,
             isLoading: false,
             error: null,
           });
+
+          console.log(
+            `Logged in successfully. Remember me: ${
+              credentials.rememberMe ? "15 days" : "7 days"
+            }`
+          );
         } catch (error) {
           const errorMessage = error.response?.data?.message || "Login failed";
           set({
@@ -72,13 +121,45 @@ export const useAuthStore = create(
         }
       },
 
-      logout: () => {
+      resetPassword: async (identifier, newPassword) => {
+        set({ isLoading: true, error: null });
+        try {
+          const res = await axios.post(
+            `${process.env.NEXT_PUBLIC_API_URL}auth/reset-password`,
+            { identifier, newPassword },
+            {
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+
+          set({ isLoading: false });
+          return res.data;
+        } catch (error) {
+          const errorMessage =
+            error.response?.data?.message || "Reset password failed";
+          set({
+            error: errorMessage,
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
+      logout: (shouldRedirect = false) => {
+        if (shouldRedirect && typeof window !== "undefined") {
+          const currentUrl = window.location.pathname + window.location.search;
+          set({ redirectUrl: currentUrl });
+        }
+
         set({
           user: null,
           token: null,
           refreshToken: null,
           isLoggedIn: false,
+          error: null,
         });
+
+        console.log("User logged out");
       },
 
       checkAuth: async () => {
@@ -102,15 +183,21 @@ export const useAuthStore = create(
               },
             }
           );
+
+          const normalizedUser = normalizeUser(res.data.user);
+
           set({
-            user: res.data.user,
+            user: normalizedUser,
             isLoggedIn: true,
             isLoading: false,
             isInitialized: true,
           });
+
+          console.log("Auth check successful");
         } catch (error) {
           if (error.response?.status === 401 && refreshToken) {
             const newToken = await get().refreshAccessToken();
+
             if (newToken) {
               try {
                 const res = await axios.get(
@@ -121,19 +208,25 @@ export const useAuthStore = create(
                     },
                   }
                 );
+
+                const normalizedUser = normalizeUser(res.data.user);
+
                 set({
-                  user: res.data.user,
+                  user: normalizedUser,
                   isLoggedIn: true,
                   isLoading: false,
                   isInitialized: true,
                 });
+
+                console.log("Auth restored after token refresh");
                 return;
               } catch (retryError) {
-                console.log("Retry failed:", retryError);
+                console.log("Retry with new token failed:", retryError);
               }
             }
           }
 
+          console.log("Auth check failed, clearing session");
           set({
             user: null,
             token: null,
@@ -144,6 +237,11 @@ export const useAuthStore = create(
           });
         }
       },
+
+      getUserId: () => {
+        const { user } = get();
+        return user?._id || user?.id || null;
+      },
     }),
     {
       name: "auth-store",
@@ -151,11 +249,16 @@ export const useAuthStore = create(
         user: state.user,
         token: state.token,
         refreshToken: state.refreshToken,
+        rememberMe: state.rememberMe,
         isLoggedIn: state.isLoggedIn,
         isInitialized: state.isInitialized,
+        redirectUrl: state.redirectUrl,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
+          if (state.user) {
+            state.user = normalizeUser(state.user);
+          }
           state.setHydrated();
         }
       },

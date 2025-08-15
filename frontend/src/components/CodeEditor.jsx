@@ -17,29 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
-const getErrorIcon = (errorType) => {
-  switch (errorType) {
-    case "compilation":
-      return <XCircle className="w-4 h-4 text-red-500" />;
-    case "runtime":
-      return <AlertCircle className="w-4 h-4 text-orange-500" />;
-    default:
-      return <AlertCircle className="w-4 h-4 text-red-500" />;
-  }
-};
-
-const getErrorBadgeColor = (errorType) => {
-  switch (errorType) {
-    case "compilation":
-      return "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20";
-    case "runtime":
-      return "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20";
-    default:
-      return "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20";
-  }
-};
 
 export const CodeEditor = ({
   selectedLanguage,
@@ -55,10 +32,6 @@ export const CodeEditor = ({
   submissions = [],
   onViewSubmissions,
 }) => {
-  const currentLanguage = languages.find(
-    (lang) => lang.value === selectedLanguage
-  );
-
   const hasSubmissions = submissions && submissions.length > 0;
 
   return (
@@ -72,7 +45,7 @@ export const CodeEditor = ({
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-5">
               <CardTitle className="text-gray-900 dark:text-white font-semibold">
                 Code Editor
               </CardTitle>
@@ -88,11 +61,6 @@ export const CodeEditor = ({
                 </Button>
               )}
             </div>
-
-            <Badge variant="outline" className="text-xs hidden sm:inline-flex">
-              {currentLanguage?.version}
-            </Badge>
-         
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">

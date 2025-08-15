@@ -15,8 +15,15 @@ import {
   LogOut,
   User,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/store/authStore";
 import { useThemeStore } from "@/store/themeStore";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,6 +36,7 @@ export default function Header() {
     isInitialized,
     isHydrated: authHydrated,
   } = useAuthStore();
+  const router = useRouter();
 
   const {
     theme,
@@ -50,7 +58,10 @@ export default function Header() {
   }, [authHydrated, isInitialized, checkAuth]);
 
   useEffect(() => {
-    if (user?.role?.includes("admin") || user?.role?.includes("problemSetter")) {
+    if (
+      user?.role?.includes("admin") ||
+      user?.role?.includes("problemSetter")
+    ) {
       setIsAdmin(true);
     }
   }, [user]);
@@ -61,7 +72,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-lg dark:bg-gray-900/80 dark:border-gray-800 overflow-hidden">
+    <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-lg dark:bg-gray-900/80 dark:border-gray-800">
       <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 relative">
           {/* Logo - positioned at leftmost */}
@@ -70,11 +81,9 @@ export default function Header() {
               <Code className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              CodeJudge
+              CodeSprint
             </span>
           </Link>
-
-          {/* Desktop Navigation - positioned absolutely in center */}
           <nav className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
             <Link
               href={isAdmin ? "/admin/problems" : "/problems"}
@@ -90,16 +99,8 @@ export default function Header() {
               <Trophy className="h-4 w-4" />
               <span>Contests</span>
             </Link>
-            <Link
-              href="/"
-              className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 transition-colors"
-            >
-              <Users className="h-4 w-4" />
-              <span>Leaderboard</span>
-            </Link>
           </nav>
 
-          {/* Right side actions - positioned at rightmost */}
           <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
@@ -116,16 +117,31 @@ export default function Header() {
 
             <div className="hidden md:flex items-center space-x-2 order-2">
               {isLoggedIn ? (
-                <>
-                  <Button
-                    variant="ghost"
-                    onClick={handleLogout}
-                    className="flex items-center space-x-1 cursor-pointer"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span>Logout</span>
-                  </Button>
-                </>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center space-x-1 cursor-pointer"
+                    >
+                      <User className="h-4 w-4" />
+                      <span>{user?.username}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem
+                      onClick={() =>
+                        router.push(`/dashboard/${user?.username}`)
+                      }
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
                 <>
                   <Link href="/login">
@@ -140,7 +156,6 @@ export default function Header() {
               )}
             </div>
 
-            {/* Mobile menu button */}
             <Button
               variant="ghost"
               size="icon"
@@ -156,7 +171,6 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden bg-white/90 backdrop-blur-lg dark:bg-gray-900/90 border-t dark:border-gray-800">
             <div className="px-2 pt-2 pb-3 space-y-1">
@@ -185,14 +199,17 @@ export default function Header() {
                 <span>Leaderboard</span>
               </Link>
 
-              {/* Mobile Auth Section */}
               <div className="border-t dark:border-gray-700 pt-2">
                 {isLoggedIn ? (
                   <>
-                    <div className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                    <Link
+                      href={`/dashboard/${user?.username}`}
+                      className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
                       <User className="h-4 w-4" />
-                      <span>Welcome, {user?.firstName}</span>
-                    </div>
+                      <span>{user?.username}</span>
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="flex items-center space-x-2 px-3 py-2 text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400 w-full text-left"

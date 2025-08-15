@@ -6,7 +6,6 @@ import { toast } from "sonner";
 export const useProblemStore = create((set, get) => ({
   problems: [],
   currentProblem: null,
-  testCases: [],
   isLoading: false,
   error: null,
   pagination: {
@@ -41,7 +40,6 @@ export const useProblemStore = create((set, get) => ({
           isLoading: false,
         });
       } else {
-        // Handle case where success is false
         set({
           error: response.data.message || "Failed to fetch problems",
           isLoading: false,
@@ -58,7 +56,6 @@ export const useProblemStore = create((set, get) => ({
     }
   },
 
-  // Get problem by ID
   getProblemById: async (id) => {
     set({ isLoading: true, error: null });
     try {
@@ -83,7 +80,6 @@ export const useProblemStore = create((set, get) => ({
     }
   },
 
-  // Create problem
   createProblem: async (problemData, token) => {
     set({ isLoading: true, error: null });
     try {
@@ -118,7 +114,6 @@ export const useProblemStore = create((set, get) => ({
     }
   },
 
-  // Update problem
   updateProblem: async (id, problemData, token) => {
     set({ isLoading: true, error: null });
     try {
@@ -159,7 +154,6 @@ export const useProblemStore = create((set, get) => ({
     }
   },
 
-  // Delete problem
   deleteProblem: async (id, token) => {
     set({ isLoading: true, error: null });
     try {
@@ -192,145 +186,6 @@ export const useProblemStore = create((set, get) => ({
     }
   },
 
-  // Get test cases for a problem
-  getTestCases: async (problemId, includePrivate = false, token = null) => {
-    set({ isLoading: true, error: null });
-    try {
-      const config = token
-        ? {
-            headers: { Authorization: `Bearer ${token}` },
-            params: { includePrivate: includePrivate.toString() },
-          }
-        : { params: { includePrivate: includePrivate.toString() } };
-
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}testcases/problem/${problemId}`,
-        config
-      );
-
-      if (response.data.success) {
-        set({
-          testCases: response.data.testCases,
-          isLoading: false,
-        });
-        return response.data.testCases;
-      }
-    } catch (error) {
-      console.error("getTestCases error:", error);
-      set({
-        error: error.response?.data?.message || "Failed to fetch test cases",
-        isLoading: false,
-      });
-      toast.error("Failed to fetch test cases");
-    }
-  },
-
-  // Create test case
-  createTestCase: async (testCaseData, token) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}testcases/create`,
-        testCaseData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        set((state) => ({
-          testCases: [...state.testCases, response.data.testCase],
-          isLoading: false,
-        }));
-        toast.success("Test case created successfully");
-        return response.data.testCase;
-      }
-    } catch (error) {
-      console.error("createTestCase error:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to create test case";
-      set({
-        error: errorMessage,
-        isLoading: false,
-      });
-      toast.error(errorMessage);
-      throw error;
-    }
-  },
-
-  // Update test case
-  updateTestCase: async (id, testCaseData, token) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}testcases/${id}`,
-        testCaseData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        set((state) => ({
-          testCases: state.testCases.map((tc) =>
-            tc._id === id ? response.data.testCase : tc
-          ),
-          isLoading: false,
-        }));
-        toast.success("Test case updated successfully");
-        return response.data.testCase;
-      }
-    } catch (error) {
-      console.error("updateTestCase error:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to update test case";
-      set({
-        error: errorMessage,
-        isLoading: false,
-      });
-      toast.error(errorMessage);
-      throw error;
-    }
-  },
-
-  // Delete test case
-  deleteTestCase: async (id, token) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL}testcases/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.data.success) {
-        set((state) => ({
-          testCases: state.testCases.filter((tc) => tc._id !== id),
-          isLoading: false,
-        }));
-        toast.success("Test case deleted successfully");
-      }
-    } catch (error) {
-      console.error("deleteTestCase error:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to delete test case";
-      set({
-        error: errorMessage,
-        isLoading: false,
-      });
-      toast.error(errorMessage);
-      throw error;
-    }
-  },
-
-  // Search problems
   searchProblems: async (query, filters = {}) => {
     set({ isLoading: true, error: null });
     try {
@@ -346,6 +201,12 @@ export const useProblemStore = create((set, get) => ({
       if (response.data.success) {
         set({
           problems: response.data.problems,
+          pagination: {
+            page: 1,
+            limit: response.data.problems.length,
+            total: response.data.problems.length,
+            pages: 1,
+          },
           isLoading: false,
         });
       }
@@ -353,6 +214,7 @@ export const useProblemStore = create((set, get) => ({
       console.error("searchProblems error:", error);
       set({
         error: error.response?.data?.message || "Failed to search problems",
+        problems: [],
         isLoading: false,
       });
       toast.error("Failed to search problems");
@@ -360,8 +222,5 @@ export const useProblemStore = create((set, get) => ({
   },
 
   clearCurrentProblem: () => set({ currentProblem: null }),
-
-  clearTestCases: () => set({ testCases: [] }),
-
   clearError: () => set({ error: null }),
 }));

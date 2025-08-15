@@ -1,24 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Mail, Lock, Github, Chrome } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     identifier: "",
     password: "",
   });
+
   const router = useRouter();
-  const { login } = useAuthStore();
+  const searchParams = useSearchParams();
+  const { login, setRedirectUrl } = useAuthStore();
+
+  useEffect(() => {
+    const redirectParam = searchParams.get("redirect");
+    if (redirectParam) {
+      const decodedRedirect = decodeURIComponent(redirectParam);
+      setRedirectUrl(decodedRedirect);
+    }
+  }, [searchParams, setRedirectUrl]);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -31,8 +42,14 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     try {
-      await login(formData);
-      router.push("/");
+      await login({ ...formData, rememberMe });
+
+      const redirectParam = searchParams.get("redirect");
+      const redirectTo = redirectParam
+        ? decodeURIComponent(redirectParam)
+        : useAuthStore.getState().getAndClearRedirectUrl();
+
+      router.push(redirectTo);
     } catch (err) {
       const errorMessage =
         err.response?.data?.message || err.message || "Login failed";
@@ -40,6 +57,8 @@ export default function LoginPage() {
       console.error("Login failed:", errorMessage);
     }
   };
+
+  const redirectParam = searchParams.get("redirect");
 
   return (
     <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 py-16">
@@ -50,12 +69,12 @@ export default function LoginPage() {
               Welcome Back
             </CardTitle>
             <p className="text-gray-600 dark:text-gray-400">
-              Sign in to your CodeJudge account
+              Sign in to your CodeSprint account
             </p>
+          
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* Social Login Buttons */}
             <div className="space-y-3">
               <Button
                 variant="outline"
@@ -143,17 +162,29 @@ export default function LoginPage() {
               </div>
 
               <div className="flex items-center justify-between">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
-                  />
-                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                    Remember me
-                  </span>
-                </label>
+                <div className="relative group">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400"
+                    />
+                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                      Remember me
+                    </span>
+                  </label>
+                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block">
+                    <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                      Keep me logged in for 15 days
+                      <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                    </div>
+                  </div>
+                </div>
                 <Link
-                  href="/forgot-password"
+                  href={`/reset-password${
+                    redirectParam ? `?redirect=${redirectParam}` : ""
+                  }`}
                   className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   Forgot password?
@@ -179,7 +210,9 @@ export default function LoginPage() {
               <span className="text-gray-600 dark:text-gray-400">
                 Don't have an account?{" "}
                 <Link
-                  href="/signup"
+                  href={`/signup${
+                    redirectParam ? `?redirect=${redirectParam}` : ""
+                  }`}
                   className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 >
                   Sign up

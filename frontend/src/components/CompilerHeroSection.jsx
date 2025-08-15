@@ -1,4 +1,4 @@
-import { Code, CheckCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export const HeroSection = () => {

@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import axios from "axios";
 import { useCodeMirrorEditor } from "@/hooks/useCodeEditor";
 import { HeroSection } from "@/components/CompilerHeroSection";
 import { ProblemSection } from "@/components/ProblemSection";
@@ -19,22 +18,34 @@ import { useSubmissionStore } from "@/store/submissionStore";
 import { useAuthStore } from "@/store/authStore";
 import { useAIStore } from "@/store/aiStore";
 import { useCodeEditorStore } from "@/store/codeEditorStore";
-
+import { useTestCaseStore } from "@/store/testcaseStore";
+import { useProblemStore } from "@/store/problemStore";
 const ProblemPage = () => {
   const router = useRouter();
   const params = useParams();
-  const problemId = params?.id;
+  const slug = params.slug;
+  const problemId = slug?.split("-").pop();
   const { responses, clearAllResponses } = useAIStore();
 
-  const { isInitialized, isLoggedIn, authHydrated, checkAuth, token } =
-    useAuthStore();
+  const {
+    isInitialized,
+    isLoggedIn,
+    authHydrated,
+    checkAuth,
+    token,
+    user,
+    getUserId, 
+  } = useAuthStore();
 
+  const userId = getUserId();
   const {
     createSubmission,
     getSubmissionsByProblem,
     submissions,
     isLoading: submissionLoading,
   } = useSubmissionStore();
+  const { getProblemById } = useProblemStore();
+  const { getTestCasesForSubmission } = useTestCaseStore();
 
   const languages = [
     {
@@ -97,8 +108,8 @@ const ProblemPage = () => {
     getCustomInput,
   } = useCodeEditorStore();
 
-  const code = getCode(problemId, selectedLanguage);
-  const customInput = getCustomInput(problemId);
+  const code = getCode(problemId, selectedLanguage, userId);
+  const customInput = getCustomInput(problemId, userId);
 
   const [problem, setProblem] = useState(null);
   const [isLoadingProblem, setIsLoadingProblem] = useState(true);
@@ -121,6 +132,7 @@ const ProblemPage = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [adminFailedTestCase, setAdminFailedTestCase] = useState(null);
 
   useEffect(() => {
     if (authHydrated && !isInitialized) {
@@ -136,8 +148,10 @@ const ProblemPage = () => {
 
   useEffect(() => {
     const fetchProblem = async () => {
-      if (!problemId) {
-        setProblemError("Problem ID not found");
+      if (!problemId || !userId) {
+        if (isInitialized && !userId) {
+          setProblemError("User not found");
+        }
         setIsLoadingProblem(false);
         return;
       }
@@ -146,76 +160,67 @@ const ProblemPage = () => {
         setIsLoadingProblem(true);
         setProblemError(null);
 
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}problems/${problemId}`,
-          {
-            headers: {
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-          }
-        );
+        const problemData = await getProblemById(problemId);
 
-        const data = response.data;
-        setProblem({
-          title: data.problem.title,
-          description: data.problem.description,
-          inputFormat: data.problem.inputFormat,
-          outputFormat: data.problem.outputFormat,
-          constraints: data.problem.constraints,
-          sampleTestCases:
-            data.problem.sampleTestCases || data.problem.testCases || [],
-          difficulty: data.problem.difficulty,
-          tags: data.problem.tags || [],
-        });
+        if (problemData) {
+          setProblem({
+            title: problemData.title,
+            description: problemData.description,
+            inputFormat: problemData.inputFormat,
+            outputFormat: problemData.outputFormat,
+            constraints: problemData.constraints,
+            sampleTestCases:
+              problemData.sampleTestCases || problemData.testCases || [],
+            difficulty: problemData.difficulty,
+            tags: problemData.tags || [],
+          });
 
-        const currentCode = getCode(problemId, selectedLanguage);
-        if (!currentCode || currentCode.trim() === "") {
-          const languageConfig = languages.find(
-            (l) => l.value === selectedLanguage
-          );
-          if (languageConfig?.template) {
-            setCode(problemId, selectedLanguage, languageConfig.template);
+          const currentCode = getCode(problemId, selectedLanguage, userId);
+          if (!currentCode || currentCode.trim() === "") {
+            const languageConfig = languages.find(
+              (l) => l.value === selectedLanguage
+            );
+            if (languageConfig?.template) {
+              setCode(
+                problemId,
+                selectedLanguage,
+                languageConfig.template,
+                userId
+              );
+            }
           }
+        } else {
+          setProblemError("Problem not found");
         }
       } catch (error) {
         console.error("Error fetching problem:", error);
-
-        if (error.response) {
-          const status = error.response.status;
-          if (status === 404) {
-            setProblemError("Problem not found");
-          } else if (status === 401) {
-            setProblemError("Unauthorized access");
-          } else {
-            setProblemError(`Failed to fetch problem: ${status}`);
-          }
-        } else if (error.request) {
-          setProblemError("Network error: Unable to connect to server");
-        } else {
-          setProblemError(error.message || "An unexpected error occurred");
-        }
+        setProblemError(error.message || "Failed to fetch problem");
       } finally {
         setIsLoadingProblem(false);
       }
     };
 
-    if (problemId && isInitialized) {
-      setCurrentProblem(problemId);
+
+    if (problemId && isInitialized && isLoggedIn && userId) {
+      setCurrentProblem(problemId, userId);
       fetchProblem();
     }
   }, [
     problemId,
     isInitialized,
-    token,
+    isLoggedIn,
+    userId,
     setCurrentProblem,
     selectedLanguage,
     getCode,
     setCode,
+    getProblemById,
   ]);
-
   const handleCodeChange = useCallback(
     (newCode) => {
-      setCode(problemId, selectedLanguage, newCode);
+      if (userId) {
+        setCode(problemId, selectedLanguage, newCode, userId);
+      }
       if (error) {
         setError(null);
       }
@@ -224,7 +229,7 @@ const ProblemPage = () => {
         setSubmissionError(null);
       }
     },
-    [problemId, selectedLanguage, setCode, error, submissionResult]
+    [problemId, selectedLanguage, setCode, error, submissionResult, userId]
   );
 
   const { editorRef, highlightError, clearErrorHighlight } =
@@ -271,7 +276,9 @@ const ProblemPage = () => {
   };
 
   const resetCode = () => {
-    resetCodeForProblem(problemId, selectedLanguage);
+    if (userId) {
+      resetCodeForProblem(problemId, selectedLanguage, userId);
+    }
     setOutput("");
     setExecutionTime(null);
     setMemoryUsed(null);
@@ -283,6 +290,11 @@ const ProblemPage = () => {
     setSubmissionResult(null);
     setSubmissionError(null);
     clearErrorHighlight();
+  };
+  const handleCustomInputChange = (newInput) => {
+    if (userId) {
+      setCustomInput(problemId, newInput, userId);
+    }
   };
 
   const runCode = async () => {
@@ -340,7 +352,6 @@ const ProblemPage = () => {
 
       for (let i = 0; i < problem.sampleTestCases.length; i++) {
         const testCase = problem.sampleTestCases[i];
-
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}run`, {
           method: "POST",
           headers: {
@@ -363,7 +374,6 @@ const ProblemPage = () => {
             line: result.line,
           };
           setError(errorInfo);
-          console.log(errorInfo);
           if (result.line) {
             highlightError(result.line);
           }
@@ -478,20 +488,12 @@ const ProblemPage = () => {
     setSubmissionResult(null);
     setSubmissionError(null);
     setError(null);
+    setAdminFailedTestCase(null);
     clearErrorHighlight();
     clearAllResponses();
 
     try {
-      const testCasesResponse = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}testcases/problem/${problemId}?includePrivate=true`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const allTestCases = testCasesResponse.data.testCases || [];
+      const allTestCases = await getTestCasesForSubmission(problemId, token);
       const hiddenTestCases = allTestCases.filter(
         (testCase) => !testCase.isPublic
       );
@@ -503,6 +505,7 @@ const ProblemPage = () => {
 
       let failedCount = 0;
       let firstFailedTestCase = null;
+      let firstFailedTestCaseDetails = null;
       let compilationError = null;
       let totalTime = 0;
       let maxMemory = 0;
@@ -545,6 +548,12 @@ const ProblemPage = () => {
           failedCount++;
           if (firstFailedTestCase === null) {
             firstFailedTestCase = i + 1;
+            firstFailedTestCaseDetails = {
+              testCaseNumber: i + 1,
+              input: testCase.input,
+              expectedOutput: testCase.expectedOutput,
+              actualOutput: actualOutput,
+            };
           }
         }
       }
@@ -559,7 +568,7 @@ const ProblemPage = () => {
           ? "Accepted"
           : "Wrong Answer",
         time: totalTime,
-        memory: maxMemory || Math.floor(Math.random() * 50) + 10, // Mock memory for now
+        memory: maxMemory || Math.floor(Math.random() * 50) + 10,
         output: compilationError
           ? compilationError.message
           : failedCount === 0
@@ -568,7 +577,6 @@ const ProblemPage = () => {
       };
 
       await createSubmission(submissionData, token);
-
       await getSubmissionsByProblem(problemId, token);
 
       if (compilationError) {
@@ -587,6 +595,10 @@ const ProblemPage = () => {
           failedTestCase: firstFailedTestCase,
           failedCount,
         });
+
+        if (user?.role?.includes("admin") && firstFailedTestCaseDetails) {
+          setAdminFailedTestCase(firstFailedTestCaseDetails);
+        }
       }
 
       setTimeout(() => {
@@ -617,7 +629,6 @@ const ProblemPage = () => {
       setIsSubmitting(false);
     }
   };
-
   useEffect(() => {
     if (problemId && token && isInitialized) {
       getSubmissionsByProblem(problemId, token);
@@ -705,7 +716,6 @@ const ProblemPage = () => {
     if (hasAnyResponse) {
       setTimeout(() => {
         const aiResponsesElement = document.getElementById("ai-responses");
-        console.log("AI responses element found:", !!aiResponsesElement);
         if (aiResponsesElement) {
           aiResponsesElement.scrollIntoView({
             behavior: "smooth",
@@ -721,16 +731,41 @@ const ProblemPage = () => {
       clearAllResponses();
     }
   }, [problemId, clearAllResponses]);
+
+  if (problemError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 dark:text-red-400 text-lg font-medium">
+            {problemError}
+          </div>
+          <button
+            onClick={() => router.push("/")}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!problem) {
-    return null;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400">Problem not found</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
-      <div className="container mx-auto p-4 max-w-9xl">
+      <div className="container mx-auto p-4 max-w-full">
         <HeroSection />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 ">
           <div className="lg:col-span-1">
             <div className="sticky top-20 max-h-[calc(100vh-5rem)] overflow-hidden">
               <ProblemSection problem={problem} />
@@ -823,6 +858,50 @@ const ProblemPage = () => {
                         submissionResult.failedCount
                       }/${submissionResult.totalTestCases} testcases passed`}
                 </div>
+
+                {user?.role?.includes("admin") && adminFailedTestCase && (
+                  <div className="mt-4 p-4 border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <h4 className="text-sm font-semibold text-orange-700 dark:text-orange-300 mb-3">
+                      🔒 Admin Debug Info - Failed Test Case{" "}
+                      {adminFailedTestCase.testCaseNumber}:
+                    </h4>
+
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Input:
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded p-2">
+                          <pre className="text-xs text-gray-800 dark:text-gray-200 font-mono whitespace-pre-wrap break-all overflow-visible">
+                            {adminFailedTestCase.input}
+                          </pre>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Expected Output:
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-600 rounded p-2">
+                          <pre className="text-xs text-gray-800 dark:text-gray-200 font-mono whitespace-pre-wrap break-all overflow-visible">
+                            {adminFailedTestCase.expectedOutput}
+                          </pre>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Your Output:
+                        </div>
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-2">
+                          <pre className="text-xs text-red-700 dark:text-red-300 font-mono whitespace-pre-wrap break-all overflow-visible">
+                            {adminFailedTestCase.actualOutput || "No output"}
+                          </pre>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -871,9 +950,7 @@ const ProblemPage = () => {
                 <CustomInput
                   customInput={customInput}
                   showInput={showInput}
-                  onInputChange={(newInput) =>
-                    setCustomInput(problemId, newInput)
-                  }
+                  onInputChange={handleCustomInputChange}
                   onToggleInput={() => setShowInput(!showInput)}
                 />
               </div>

@@ -1,13 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,14 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -41,26 +33,20 @@ import {
   Edit,
   Trash2,
   MoreVertical,
-  Code,
   Calendar,
-  User,
   Tag,
   TestTube,
   ChevronLeft,
   ChevronRight,
-  Moon,
-  Sun,
 } from "lucide-react";
 import { useProblemStore } from "@/store/problemStore";
 import { useAuthStore } from "@/store/authStore";
 import { useThemeStore } from "@/store/themeStore";
-import Link from "next/link";
 
 const AdminProblemsPage = () => {
   const router = useRouter();
   const {
     problems,
-    isLoading,
     pagination,
     getAllProblems,
     deleteProblem,
@@ -69,12 +55,10 @@ const AdminProblemsPage = () => {
   } = useProblemStore();
 
   const { user, token, isLoggedIn, isInitialized } = useAuthStore();
-  const { theme, toggleTheme, initializeTheme, isHydrated } = useThemeStore();
+  const { theme, initializeTheme, isHydrated } = useThemeStore();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
-  const [selectedTag, setSelectedTag] = useState("all");
-  const [showFilters, setShowFilters] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
     problem: null,
@@ -110,20 +94,24 @@ const AdminProblemsPage = () => {
     return () => clearError();
   }, []);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      handleSearchOrFilter();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, selectedDifficulty]);
+
+  const handleSearchOrFilter = async () => {
+    const filters = {};
+    if (selectedDifficulty !== "all") {
+      filters.difficulty = selectedDifficulty;
+    }
+
     if (searchQuery.trim()) {
-      await searchProblems(searchQuery, {
-        difficulty:
-          selectedDifficulty !== "all" ? selectedDifficulty : undefined,
-        tag: selectedTag !== "all" ? selectedTag : undefined,
-      });
+      await searchProblems(searchQuery, filters);
     } else {
-      await getAllProblems(1, 12, {
-        difficulty:
-          selectedDifficulty !== "all" ? selectedDifficulty : undefined,
-        tag: selectedTag !== "all" ? selectedTag : undefined,
-      });
+      await getAllProblems(1, 12, filters);
     }
   };
 
@@ -137,10 +125,14 @@ const AdminProblemsPage = () => {
   };
 
   const handlePageChange = (newPage) => {
-    getAllProblems(newPage, 12, {
-      difficulty: selectedDifficulty !== "all" ? selectedDifficulty : undefined,
-      tag: selectedTag !== "all" ? selectedTag : undefined,
-    });
+    if (searchQuery.trim()) {
+      return;
+    }
+    const filters = {};
+    if (selectedDifficulty !== "all") {
+      filters.difficulty = selectedDifficulty;
+    }
+    getAllProblems(newPage, 12, filters);
   };
 
   const getDifficultyColor = (difficulty) => {
@@ -165,6 +157,14 @@ const AdminProblemsPage = () => {
     }
   };
 
+  const slugify = (title) => {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -174,13 +174,12 @@ const AdminProblemsPage = () => {
   };
 
   if (!isHydrated) {
-    return null; // Prevent hydration mismatch
+    return null;
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900/20 transition-colors duration-300">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -207,75 +206,66 @@ const AdminProblemsPage = () => {
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="mb-8 shadow-lg border-0 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
-          <CardContent className="p-6">
-            <form onSubmit={handleSearch} className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
-                  <Input
-                    placeholder="Search problems by title, description, or tags..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800/50 dark:text-gray-100"
-                  />
-                </div>
+          <Card className="mb-8 shadow-lg border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+                 <CardContent className="p-6">
+                   <div className="space-y-4">
+                     <div className="flex flex-col md:flex-row gap-4">
+                       <div className="flex-1 relative">
+                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
+                         <Input
+                           placeholder="Search problems by title, description, or tags..."
+                           value={searchQuery}
+                           onChange={(e) => setSearchQuery(e.target.value)}
+                           className="pl-12 h-12 text-base border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-800/50 dark:text-gray-100 rounded-xl"
+                         />
+                       </div>
+       
+                       <div className="flex flex-col md:flex-row gap-4 items-center">
+                         <Select
+                           value={selectedDifficulty}
+                           onValueChange={setSelectedDifficulty}
+                         >
+                           <SelectTrigger className="h-12 w-full md:w-40 border-gray-200 dark:border-gray-600 dark:bg-gray-800 rounded-xl">
+                             <SelectValue placeholder="Difficulty" />
+                           </SelectTrigger>
+                           <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                             <SelectItem value="all">All Difficulties</SelectItem>
+                             <SelectItem value="easy">Easy</SelectItem>
+                             <SelectItem value="medium">Medium</SelectItem>
+                             <SelectItem value="hard">Hard</SelectItem>
+                           </SelectContent>
+                         </Select>
+       
+                         {(searchQuery || selectedDifficulty !== "all") && (
+                           <Button
+                             type="button"
+                             variant="outline"
+                             onClick={() => {
+                               setSearchQuery("");
+                               setSelectedDifficulty("all");
+                               getAllProblems(1, 12);
+                             }}
+                             className="h-12 px-6 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl"
+                           >
+                             Clear Filters
+                           </Button>
+                         )}
+                       </div>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="shrink-0 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filters
-                </Button>
-
-                <Button
-                  type="submit"
-                  className="shrink-0 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                >
-                  Search
-                </Button>
-              </div>
-
-              {showFilters && (
-                <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                  <Select
-                    value={selectedDifficulty}
-                    onValueChange={setSelectedDifficulty}
-                  >
-                    <SelectTrigger className="w-full sm:w-48 border-gray-200 dark:border-gray-600 dark:bg-gray-800">
-                      <SelectValue placeholder="Select difficulty" />
-                    </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
-                      <SelectItem value="all">All Difficulties</SelectItem>
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Input
-                    placeholder="Filter by tag..."
-                    value={selectedTag}
-                    onChange={(e) => setSelectedTag(e.target.value)}
-                    className="w-full sm:w-48 border-gray-200 dark:border-gray-600 dark:bg-gray-800/50 dark:text-gray-100"
-                  />
-                </div>
-              )}
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Problems Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {problems.map((problem) => (
             <Card
               key={problem._id}
               className="group hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white/90 dark:hover:bg-gray-800/90 hover:-translate-y-1 cursor-pointer"
-              onClick={() => router.push(`/problems/${problem._id}`)}
+              onClick={() =>
+                router.push(
+                  `/problems/${slugify(problem.title)}-${problem._id}`
+                )
+              }
             >
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
@@ -301,7 +291,7 @@ const AdminProblemsPage = () => {
                           variant="ghost"
                           size="sm"
                           className="opacity-100 transition-opacity hover:bg-gray-100 dark:hover:bg-gray-700"
-                          onClick={(e) => e.stopPropagation()} // Prevent card click
+                          onClick={(e) => e.stopPropagation()} 
                         >
                           <MoreVertical className="w-4 h-4" />
                         </Button>
@@ -322,7 +312,7 @@ const AdminProblemsPage = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={(e) => {
-                            e.stopPropagation(); 
+                            e.stopPropagation();
                             router.push(`/admin/problems/${problem._id}/edit`);
                           }}
                           className="dark:hover:bg-gray-700"
@@ -332,7 +322,7 @@ const AdminProblemsPage = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={(e) => {
-                            e.stopPropagation(); 
+                            e.stopPropagation();
                             router.push(
                               `/admin/problems/${problem._id}/testcases`
                             );
@@ -344,7 +334,7 @@ const AdminProblemsPage = () => {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={(e) => {
-                            e.stopPropagation(); 
+                            e.stopPropagation();
                             setDeleteDialog({ open: true, problem });
                           }}
                           className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
@@ -377,7 +367,6 @@ const AdminProblemsPage = () => {
           ))}
         </div>
 
-        {/* Pagination */}
         <div className="flex justify-center gap-4 mt-6">
           <Button
             variant="outline"
@@ -403,7 +392,6 @@ const AdminProblemsPage = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialog.open}
         onOpenChange={(open) => setDeleteDialog({ open, problem: null })}

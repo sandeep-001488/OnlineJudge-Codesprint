@@ -55,82 +55,90 @@ export const useCodeEditorStore = create(
   persist(
     (set, get) => ({
       currentProblemId: null,
-
       selectedLanguage: "cpp",
 
-      codeStorage: {},
-
-      customInputStorage: {},
-
-      setCurrentProblem: (problemId) => {
-        set({ currentProblemId: problemId });
+      code: {}, 
+      customInputs: {}, 
+      setCurrentProblem: (problemId, userId) => {
+        if (!userId) return;
+        set({ currentProblem: `${problemId}_${userId}` });
       },
 
       setSelectedLanguage: (language) => {
         set({ selectedLanguage: language });
       },
 
-      setCode: (problemId, language, code) => {
-        const state = get();
-        const newCodeStorage = {
-          ...state.codeStorage,
-          [problemId]: {
-            ...state.codeStorage[problemId],
-            [language]: code,
+      setCode: (problemId, language, code, userId) => {
+        if (!userId) return;
+        const key = `${problemId}_${language}_${userId}`;
+        set((state) => ({
+          code: {
+            ...state.code,
+            [key]: code,
           },
-        };
-        set({ codeStorage: newCodeStorage });
+        }));
       },
 
-      getCode: (problemId, language) => {
+      getCode: (problemId, language, userId) => {
+        if (!userId) return "";
+        const key = `${problemId}_${language}_${userId}`;
         const state = get();
-        const problemStorage = state.codeStorage[problemId];
-
-        if (problemStorage && problemStorage[language]) {
-          return problemStorage[language];
-        }
-
-        const languageConfig = languages.find((l) => l.value === language);
-        return languageConfig?.template || "";
+        return state.code[key] || "";
       },
 
-      resetCodeForProblem: (problemId, language) => {
-        const state = get();
+      resetCodeForProblem: (problemId, language, userId) => {
+        if (!userId) return;
+        const key = `${problemId}_${language}_${userId}`;
         const languageConfig = languages.find((l) => l.value === language);
         const template = languageConfig?.template || "";
 
-        const newCodeStorage = {
-          ...state.codeStorage,
-          [problemId]: {
-            ...state.codeStorage[problemId],
-            [language]: template,
+        set((state) => ({
+          code: {
+            ...state.code,
+            [key]: template,
           },
-        };
-
-        set({ codeStorage: newCodeStorage });
-        return template;
+        }));
       },
 
-      setCustomInput: (problemId, input) => {
+      setCustomInput: (problemId, input, userId) => {
+        if (!userId) return;
+        const key = `${problemId}_${userId}`;
+        set((state) => ({
+          customInputs: {
+            ...state.customInputs,
+            [key]: input,
+          },
+        }));
+      },
+
+      getCustomInput: (problemId, userId) => {
+        if (!userId) return "";
+        const key = `${problemId}_${userId}`;
         const state = get();
-        const newCustomInputStorage = {
-          ...state.customInputStorage,
-          [problemId]: input,
-        };
-        set({ customInputStorage: newCustomInputStorage });
+        return state.customInputs[key] || "";
       },
 
-      getCustomInput: (problemId) => {
+      clearUserCode: (userId) => {
+        if (!userId) return;
         const state = get();
-        return state.customInputStorage[problemId] || "";
-      },
+        const newCode = {};
+        const newCustomInputs = {};
 
-      clearAll: () => {
+        Object.keys(state.code || {}).forEach((key) => {
+          if (!key.endsWith(`_${userId}`)) {
+            newCode[key] = state.code[key];
+          }
+        });
+
+        Object.keys(state.customInputs || {}).forEach((key) => {
+          if (!key.endsWith(`_${userId}`)) {
+            newCustomInputs[key] = state.customInputs[key];
+          }
+        });
+
         set({
-          currentProblemId: null,
-          selectedLanguage: "cpp",
-          codeStorage: {},
-          customInputStorage: {},
+          code: newCode,
+          customInputs: newCustomInputs,
         });
       },
     }),

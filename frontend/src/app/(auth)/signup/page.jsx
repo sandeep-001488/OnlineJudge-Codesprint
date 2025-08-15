@@ -61,12 +61,11 @@ export default function SignupPage() {
               Create Account
             </CardTitle>
             <p className="text-gray-600 dark:text-gray-400">
-              Join CodeJudge and start your coding journey
+              Join CodeSprint and start your coding journey
             </p>
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* Social Login Buttons */}
             <div className="space-y-3">
               <Button
                 variant="outline"
@@ -85,7 +84,6 @@ export default function SignupPage() {
               </Button>
             </div>
 
-            {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
@@ -97,9 +95,7 @@ export default function SignupPage() {
               </div>
             </div>
 
-            {/* Registration Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Name Fields */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label
@@ -146,7 +142,6 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              {/* username */}
               <div className="space-y-2">
                 <Label
                   htmlFor="username"
@@ -169,7 +164,6 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              {/* Email Field */}
               <div className="space-y-2">
                 <Label
                   htmlFor="email"
@@ -192,7 +186,6 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              {/* Password Field */}
               <div className="space-y-2">
                 <Label
                   htmlFor="password"
@@ -259,7 +252,6 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              {/* Terms and Conditions */}
               <div className="flex items-start space-x-2">
                 <input
                   type="checkbox"
@@ -317,7 +309,6 @@ export default function SignupPage() {
           </CardContent>
         </Card>
 
-        {/* Additional Info */}
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
             By creating an account, you agree to our{" "}

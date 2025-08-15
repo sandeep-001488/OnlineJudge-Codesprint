@@ -22,7 +22,6 @@ export const OutputPanel = ({
             </CardTitle>
           </div>
 
-          {/* Execution Time Badge */}
           {executionTime && !isRunning && (
             <Badge
               variant="outline"

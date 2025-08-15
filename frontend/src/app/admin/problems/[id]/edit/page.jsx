@@ -463,7 +463,7 @@ export default function ProblemEditPage() {
             </TabsList>
           </div>
 
-          {/* Mobile Tabs - Vertical layout on small screens */}
+          {/* Mobile Tabs - Vertical layout on small  */}
           <div className="md:hidden mb-8">
             <TabsList className="flex flex-col h-auto w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-2 shadow-lg rounded-xl p-2 space-y-2">
               <TabsTrigger
@@ -497,7 +497,6 @@ export default function ProblemEditPage() {
             </TabsList>
           </div>
 
-          {/* Basic Information Tab */}
           <TabsContent value="basic" className="space-y-6">
             <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
               <CardHeader className="pb-6">
@@ -507,7 +506,6 @@ export default function ProblemEditPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Title */}
                 <div className="space-y-2">
                   <Label htmlFor="title" className="text-base font-semibold">
                     Problem Title *
@@ -522,7 +520,6 @@ export default function ProblemEditPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Difficulty */}
                   <div className="space-y-2">
                     <Label className="text-base font-semibold">
                       Difficulty Level *
@@ -559,7 +556,6 @@ export default function ProblemEditPage() {
                     </Select>
                   </div>
 
-                  {/* Current Difficulty Display */}
                   <div className="space-y-2">
                     <Label className="text-base font-semibold">
                       Selected Difficulty
@@ -589,7 +585,6 @@ export default function ProblemEditPage() {
                   </div>
                 </div>
 
-                {/* Tags */}
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">Tags</Label>
                   <div className="flex gap-2">
@@ -633,7 +628,6 @@ export default function ProblemEditPage() {
             </Card>
           </TabsContent>
 
-          {/* Description Tab */}
           <TabsContent value="description" className="space-y-6">
             <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
               <CardHeader className="pb-6">
@@ -863,7 +857,6 @@ Write your problem description here with markdown support..."
               </CardContent>
             </Card>
 
-            {/* Update Section - Only shown in Test Cases tab */}
             <Card className="border-0 shadow-xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg">
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center space-y-4">

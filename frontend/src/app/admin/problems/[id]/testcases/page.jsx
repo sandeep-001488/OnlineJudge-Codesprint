@@ -4,13 +4,11 @@ import { useRouter, useParams } from "next/navigation";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -22,7 +20,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus,
   Edit,
@@ -33,10 +30,6 @@ import {
   ArrowLeft,
   Save,
   X,
-  Code,
-  FileText,
-  Check,
-  AlertCircle,
   List,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -55,7 +48,6 @@ const TestCasesManagementPage = () => {
     getProblemById,
   } = useProblemStore();
 
-  // Using dedicated test case store
   const {
     testCases,
     isLoading: testCaseLoading,
@@ -74,9 +66,7 @@ const TestCasesManagementPage = () => {
     open: false,
     testCase: null,
   });
-  // Changed filter state to use 'all', 'public', 'private'
   const [filterType, setFilterType] = useState("all");
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const [formData, setFormData] = useState({
     input: "",
@@ -98,62 +88,38 @@ const TestCasesManagementPage = () => {
   const isLoading = problemLoading || testCaseLoading;
 
   useEffect(() => {
-    if (!canManage && currentProblem && isInitialLoad) {
+    if (currentProblem && !canManage) {
       toast.error(
         "You do not have permission to manage test cases for this problem"
       );
       router.push("/");
     }
-  }, [canManage, currentProblem, isInitialLoad]);
+  }, [canManage, currentProblem, router]);
 
   useEffect(() => {
     const loadData = async () => {
-      if (problemId && token && isInitialLoad && isLoggedIn) {
+      if (problemId && token && isLoggedIn) {
         try {
-          console.log("Component - Loading data for problem:", {
-            problemId,
-            hasToken: !!token,
-            isLoggedIn,
-            userRole: user?.role,
-          });
-
           await getProblemById(problemId);
-
-          const fetchedTestCases = await getTestCasesByProblemId(
-            problemId,
-            true,
-            token
-          );
+          await getTestCasesByProblemId(problemId, {
+            includePrivate: true,
+            forSubmission: false,
+            token: token,
+          });
         } catch (error) {
           console.error("Component - Error loading data:", error);
-        } finally {
-          setIsInitialLoad(false);
         }
-      } else {
-        console.log("Component - Skipping data load:", {
-          hasProblnemId: !!problemId,
-          hasToken: !!token,
-          isInitialLoad,
-          isLoggedIn,
-        });
       }
     };
 
     loadData();
+  }, [problemId, token, isLoggedIn, getProblemById, getTestCasesByProblemId]);
 
+  useEffect(() => {
     return () => {
       clearTestCases();
     };
-  }, [
-    problemId,
-    token,
-    isInitialLoad,
-    isLoggedIn,
-    getProblemById,
-    getTestCasesByProblemId,
-    clearTestCases,
-  ]);
-
+  }, [clearTestCases]);
   const resetForm = () => {
     setFormData({
       input: "",
@@ -314,8 +280,8 @@ const TestCasesManagementPage = () => {
                     Add Test Case
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl dark:bg-gray-800 dark:border-gray-600">
-                  <DialogHeader>
+                <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col dark:bg-gray-800 dark:border-gray-600">
+                  <DialogHeader className="flex-shrink-0">
                     <DialogTitle className="dark:text-gray-100">
                       Create New Test Case
                     </DialogTitle>
@@ -325,84 +291,85 @@ const TestCasesManagementPage = () => {
                     </DialogDescription>
                   </DialogHeader>
 
-                  <form onSubmit={handleCreateTestCase} className="space-y-4">
-                    <div>
-                      <Label htmlFor="input" className="dark:text-gray-200">
-                        Input
-                      </Label>
-                      <Textarea
-                        id="input"
-                        placeholder="Enter test case input..."
-                        value={formData.input}
-                        onChange={(e) =>
-                          setFormData({ ...formData, input: e.target.value })
-                        }
-                        className="w-full min-h-24 font-mono text-sm p-3 border border-gray-300 rounded-md 
-               dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
-               resize-y break-all"
-                        required
-                      />
-                    </div>
+                  <div className="flex-1 overflow-y-auto px-1">
+                    <form onSubmit={handleCreateTestCase} className="space-y-4">
+                      <div>
+                        <Label htmlFor="input" className="dark:text-gray-200">
+                          Input
+                        </Label>
+                        <Textarea
+                          id="input"
+                          placeholder="Enter test case input..."
+                          value={formData.input}
+                          onChange={(e) =>
+                            setFormData({ ...formData, input: e.target.value })
+                          }
+                          className="w-full min-h-24 max-h-40 font-mono text-sm p-3 border border-gray-300 rounded-md 
+           dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+           resize-y break-all"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor="expectedOutput"
+                          className="dark:text-gray-200"
+                        >
+                          Expected Output
+                        </Label>
 
-                    <div>
-                      <Label
-                        htmlFor="expectedOutput"
-                        className="dark:text-gray-200"
-                      >
-                        Expected Output
-                      </Label>
+                        <Textarea
+                          id="expectedOutput"
+                          placeholder="Enter expected output..."
+                          value={formData.expectedOutput}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              expectedOutput: e.target.value,
+                            })
+                          }
+                          className="w-full min-h-24 max-h-40 font-mono text-sm p-3 border border-gray-300 rounded-md 
+           dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
+           resize-y break-all"
+                          required
+                        />
+                      </div>
 
-                      <Textarea
-                        id="expectedOutput"
-                        placeholder="Enter expected output..."
-                        value={formData.expectedOutput}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            expectedOutput: e.target.value,
-                          })
-                        }
-                        className="w-full min-h-24 font-mono text-sm p-3 border border-gray-300 rounded-md 
-               dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100
-               resize-y break-all"
-                        required
-                      />
-                    </div>
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="isPublic"
+                          checked={formData.isPublic}
+                          onCheckedChange={(checked) =>
+                            setFormData({ ...formData, isPublic: checked })
+                          }
+                        />
+                        <Label
+                          htmlFor="isPublic"
+                          className="text-sm dark:text-gray-200"
+                        >
+                          Make this test case public (visible to users)
+                        </Label>
+                      </div>
 
-                    <div className="flex items-center space-x-2">
-                      <Switch
-                        id="isPublic"
-                        checked={formData.isPublic}
-                        onCheckedChange={(checked) =>
-                          setFormData({ ...formData, isPublic: checked })
-                        }
-                      />
-                      <Label
-                        htmlFor="isPublic"
-                        className="text-sm dark:text-gray-200"
-                      >
-                        Make this test case public (visible to users)
-                      </Label>
-                    </div>
-
-                    <div className="flex justify-end space-x-2 pt-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setShowCreateDialog(false)}
-                        className="dark:border-gray-600 dark:hover:bg-gray-700"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={isLoading}
-                        className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                      >
-                        {isLoading ? "Creating..." : "Create Test Case"}
-                      </Button>
-                    </div>
-                  </form>
+                      <div className="flex justify-end space-x-2 pt-4 sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-600 mt-4 -mx-1 px-1">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowCreateDialog(false)}
+                          className="dark:border-gray-600 dark:hover:bg-gray-700"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={isLoading}
+                          className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                        >
+                          {isLoading ? "Creating..." : "Create Test Case"}
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
                 </DialogContent>
               </Dialog>
             </div>
@@ -473,7 +440,6 @@ const TestCasesManagementPage = () => {
           </Card>
         </div>
 
-        {/* Test Cases Grid - RESPONSIVE GRID LAYOUT */}
         <div className="mb-8">
           {testCaseLoading && testCases.length === 0 ? (
             <Card className="text-center py-12 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-0 shadow-lg">
@@ -516,7 +482,6 @@ const TestCasesManagementPage = () => {
               </CardContent>
             </Card>
           ) : (
-            /* RESPONSIVE GRID - 1 col on mobile, 2 on tablet, 3 on desktop */
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {filteredTestCases.map((testCase, index) => (
                 <Card
@@ -584,18 +549,7 @@ const TestCasesManagementPage = () => {
                           >
                             Input
                           </Label>
-                          {/* <Textarea
-                            id={`edit-input-${testCase._id}`}
-                            value={formData.input}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                input: e.target.value,
-                              })
-                            }
-                            className="min-h-16 font-mono text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 resize-none"
-                            required
-                          /> */}
+                   
                           <Textarea
                             id={`edit-input-${testCase._id}`}
                             value={formData.input}
@@ -624,18 +578,6 @@ const TestCasesManagementPage = () => {
                           >
                             Expected Output
                           </Label>
-                          {/* <Textarea
-                            id={`edit-output-${testCase._id}`}
-                            value={formData.expectedOutput}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                expectedOutput: e.target.value,
-                              })
-                            }
-                            className="min-h-16 font-mono text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 resize-none"
-                            required
-                          /> */}
                           <Textarea
                             id={`edit-output-${testCase._id}`}
                             value={formData.expectedOutput}
@@ -727,7 +669,6 @@ const TestCasesManagementPage = () => {
           )}
         </div>
 
-        {/* Delete Confirmation Dialog */}
         <Dialog
           open={deleteDialog.open}
           onOpenChange={(open) => setDeleteDialog({ open, testCase: null })}

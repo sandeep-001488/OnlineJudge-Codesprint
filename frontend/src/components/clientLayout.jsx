@@ -2,15 +2,48 @@
 import { useAuthStore } from "@/store/authStore";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
-  const { isLoading, isHydrated, checkAuth, isInitialized } = useAuthStore();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const {
+    isLoading,
+    isHydrated,
+    checkAuth,
+    isInitialized,
+    isLoggedIn,
+    setRedirectUrl,
+  } = useAuthStore();
+
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  const isAuthPage =
-    pathname?.startsWith("/login") || pathname?.startsWith("/signup");
+  const protectedRoutes = ["/profile", "/contests", "/admin", "/user-feedback"];
+  const publicRoutes = ["/", "/problems"];
+  const authRoutes = ["/login", "/signup", "/reset-password"];
+
+  const isProtectedRoute = () => {
+    if (publicRoutes.includes(pathname)) {
+      return false;
+    }
+
+    if (protectedRoutes.some((route) => pathname?.startsWith(route))) {
+      return true;
+    }
+
+    if (pathname?.startsWith("/problems/")) {
+      return true;
+    }
+    if (pathname?.startsWith("/dashboard/")) {
+      return false;
+    }
+
+    return false;
+  };
+
+  const isAuthRoute = authRoutes.some((route) => pathname?.startsWith(route));
+  const shouldRequireAuth = isProtectedRoute();
 
   useEffect(() => {
     checkAuth();
@@ -22,9 +55,37 @@ export default function ClientLayout({ children }) {
     return () => clearTimeout(timer);
   }, [checkAuth]);
 
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    if (shouldRequireAuth && !isLoggedIn) {
+      setRedirectUrl(pathname);
+      const loginUrl = `/login?redirect=${encodeURIComponent(pathname)}`;
+      router.push(loginUrl);
+    } else if (isAuthRoute && isLoggedIn) {
+      const redirectParam = searchParams.get("redirect");
+      const redirectTo = redirectParam
+        ? decodeURIComponent(redirectParam)
+        : "/";
+      router.push(redirectTo);
+    }
+  }, [
+    isInitialized,
+    isLoggedIn,
+    shouldRequireAuth,
+    isAuthRoute,
+    pathname,
+    router,
+    setRedirectUrl,
+    searchParams,
+  ]);
+
   const shouldShowLoadingScreen =
-    (!isHydrated || isInitialLoading || (!isInitialized && isLoading)) &&
-    !isAuthPage;
+    !isHydrated ||
+    isInitialLoading ||
+    (!isInitialized && isLoading) ||
+    (isInitialized && shouldRequireAuth && !isLoggedIn) ||
+    (isInitialized && isAuthRoute && isLoggedIn);
 
   if (shouldShowLoadingScreen) {
     return (
@@ -64,7 +125,9 @@ export default function ClientLayout({ children }) {
                   OJ-Codesprint
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 animate-pulse">
-                  Preparing your coding environment...
+                  {isInitialized && shouldRequireAuth && !isLoggedIn
+                    ? "Redirecting to login..."
+                    : "Preparing your coding environment..."}
                 </p>
               </div>
 
