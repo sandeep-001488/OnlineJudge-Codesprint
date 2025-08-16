@@ -17,13 +17,12 @@ export async function getUserProfile(req, res) {
     const authHeader = req.headers.authorization;
     if (authHeader) {
       try {
-        const token = authHeader.split(' ')[1];
+        const token = authHeader.split(" ")[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         if (decoded.userId === user._id.toString()) {
           await User.findByIdAndUpdate(user._id, { lastActive: new Date() });
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     }
 
     res.status(200).json({
@@ -35,7 +34,7 @@ export async function getUserProfile(req, res) {
     res.status(500).json({ message: "Server error" });
   }
 }
- 
+
 export async function getUserStats(req, res) {
   try {
     const { username } = req.params;
@@ -135,7 +134,7 @@ export async function getUserStats(req, res) {
     const recentSubmissions = await Submission.find({ userId: user._id })
       .populate("problemId", "title difficulty")
       .sort({ createdAt: -1 })
-      .limit(10)
+      .limit(15)
       .lean();
 
     const solvedProblemDetails = await Problem.find({
@@ -144,7 +143,7 @@ export async function getUserStats(req, res) {
 
     const tagFrequency = {};
     const difficultyWeights = { Easy: 1, Medium: 2, Hard: 3 };
-    
+
     solvedProblemDetails.forEach((problem) => {
       const weight = difficultyWeights[problem.difficulty] || 1;
       problem.tags?.forEach((tag) => {
@@ -157,35 +156,39 @@ export async function getUserStats(req, res) {
       .slice(0, 8)
       .map(([tag]) => tag);
 
-    const totalSubmissions = await Submission.countDocuments({ userId: user._id });
-    const acceptedSubmissions = await Submission.countDocuments({ 
-      userId: user._id, 
-      status: "Accepted" 
+    const totalSubmissions = await Submission.countDocuments({
+      userId: user._id,
     });
-    const acceptanceRate = totalSubmissions > 0 ? 
-      Math.round((acceptedSubmissions / totalSubmissions) * 100) : 0;
+    const acceptedSubmissions = await Submission.countDocuments({
+      userId: user._id,
+      status: "Accepted",
+    });
+    const acceptanceRate =
+      totalSubmissions > 0
+        ? Math.round((acceptedSubmissions / totalSubmissions) * 100)
+        : 0;
 
     const difficultyBreakdown = await Problem.aggregate([
       {
         $match: {
-          _id: { $in: solvedProblems }
-        }
+          _id: { $in: solvedProblems },
+        },
       },
       {
         $group: {
           _id: "$difficulty",
-          count: { $sum: 1 }
-        }
-      }
+          count: { $sum: 1 },
+        },
+      },
     ]);
 
     const difficultyStats = {
       Easy: 0,
       Medium: 0,
-      Hard: 0
+      Hard: 0,
     };
 
-    difficultyBreakdown.forEach(item => {
+    difficultyBreakdown.forEach((item) => {
       if (item._id && difficultyStats.hasOwnProperty(item._id)) {
         difficultyStats[item._id] = item.count;
       }
@@ -197,9 +200,9 @@ export async function getUserStats(req, res) {
         problemsSolved: solvedProblems.length,
         totalProblems,
         rank,
-        recentSubmissions: recentSubmissions.map(submission => ({
+        recentSubmissions: recentSubmissions.map((submission) => ({
           _id: submission._id,
-          problemId: submission.problemId,
+          problem: submission.problemId,
           status: submission.status,
           createdAt: submission.createdAt,
           language: submission.language,
@@ -211,8 +214,8 @@ export async function getUserStats(req, res) {
         acceptanceRate,
         difficultyStats,
         streak: await calculateUserStreak(user._id),
-        contestsParticipated: 0, 
-        badges: [], 
+        contestsParticipated: 0,
+        badges: [],
       },
     });
   } catch (error) {
@@ -227,37 +230,39 @@ async function calculateUserStreak(userId) {
       {
         $match: {
           userId: userId,
-          status: "Accepted"
-        }
+          status: "Accepted",
+        },
       },
       {
         $group: {
           _id: {
             $dateToString: {
               format: "%Y-%m-%d",
-              date: "$createdAt"
-            }
+              date: "$createdAt",
+            },
           },
-          count: { $sum: 1 }
-        }
+          count: { $sum: 1 },
+        },
       },
       {
-        $sort: { "_id": -1 }
-      }
+        $sort: { _id: -1 },
+      },
     ]);
 
     if (submissions.length === 0) return 0;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     let streak = 0;
     let currentDate = new Date(today);
-    
+
     for (const submission of submissions) {
       const submissionDate = new Date(submission._id);
-      const diffDays = Math.floor((currentDate - submissionDate) / (1000 * 60 * 60 * 24));
-      
+      const diffDays = Math.floor(
+        (currentDate - submissionDate) / (1000 * 60 * 60 * 24)
+      );
+
       if (diffDays === streak) {
         streak++;
         currentDate.setDate(currentDate.getDate() - 1);
@@ -268,7 +273,7 @@ async function calculateUserStreak(userId) {
         break;
       }
     }
-    
+
     return streak;
   } catch (error) {
     console.error("Calculate streak error:", error);

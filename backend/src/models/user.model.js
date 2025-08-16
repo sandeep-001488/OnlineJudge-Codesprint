@@ -39,8 +39,27 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function () {
+        return this.provider === "local" || !this.provider;
+      },
       minlength: [4, "Password must be at least 4 characters long"],
+    },
+    googleId: {
+      type: String,
+      sparse: true, 
+      unique: true,
+    },
+    picture: {
+      type: String, 
+    },
+    provider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
     },
     resetPasswordCode: {
       type: String,
@@ -52,9 +71,38 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    usernameChangeCount: {
+      type: Number,
+      default: 0,
+      max: 1,
+    },
+    hasChangedUsername: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
+
+userSchema.pre("save", function (next) {
+  if (this.provider === "google" && !this.isEmailVerified) {
+    this.isEmailVerified = true;
+  }
+
+  if (this.provider === "google" && !this.password) {
+    this.password = `google_oauth_${this.googleId}_${Date.now()}`;
+  }
+
+  next();
+});
+
+userSchema.methods.isGoogleUser = function () {
+  return this.provider === "google" && this.googleId;
+};
+
+userSchema.methods.getFullName = function () {
+  return `${this.firstName} ${this.lastName || ""}`.trim();
+};
 
 const User = mongoose.model.User || mongoose.model("User", userSchema);
 export default User;

@@ -57,6 +57,60 @@ export async function loginUser({ identifier, password }) {
   };
 }
 
+export async function updateUserUsername(userId, newUsername) {
+  const currentUser = await User.findById(userId);
+
+  if (!currentUser) {
+    throw new Error("User not found");
+  }
+
+  if (currentUser.hasChangedUsername || currentUser.usernameChangeCount >= 1) {
+    throw new Error("You have already changed your username once");
+  }
+
+  const existingUser = await User.findOne({
+    username: newUsername,
+    _id: { $ne: userId },
+  });
+
+  if (existingUser) {
+    throw new Error("Username already exists");
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      username: newUsername,
+      usernameChangeCount: 1,
+      hasChangedUsername: true,
+    },
+    { new: true }
+  );
+
+  return {
+    id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    username: user.username,
+    role: user.role,
+    provider: user.provider,
+    picture: user.picture,
+    hasChangedUsername: user.hasChangedUsername,
+  };
+}
+
+export async function checkUsernameExists(username, excludeUserId = null) {
+  const query = { username };
+  
+  if (excludeUserId) {
+    query._id = { $ne: excludeUserId };
+  }
+
+  const existingUser = await User.findOne(query);
+  return !!existingUser;
+}
+
 export async function resetUserPassword({ identifier, newPassword }) {
   const user = await User.findOne({
     $or: [{ email: identifier }, { username: identifier }],

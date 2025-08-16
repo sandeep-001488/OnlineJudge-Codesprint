@@ -7,7 +7,6 @@ export const requireRole = (...roles) => {
 
 
     const hasPermission = roles.some((r) => userRoles.includes(r));
-    console.log("Has permission:", hasPermission);
 
     if (!hasPermission) {
       return res.status(403).json({ message: "Forbidden: Insufficient role" });
