@@ -1,19 +1,19 @@
-import { createFeedbackService, createSuggestionService, getAllFeedbacksService, getHomePageStatsService, getRecentFeedbacksService } from "../services/feedback.service.js";
+import {
+  createFeedbackService,
+  createSuggestionService,
+  getAllFeedbacksService,
+  getHomePageStatsService,
+  getRecentFeedbacksService,
+} from "../services/feedback.service.js";
 
 export async function createFeedbackController(req, res) {
   try {
-   
-    const feedback = await createFeedbackService(
-      req.user.id,
-      req.body
-    );
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Feedback created successfully",
-        data: feedback,
-      });
+    const feedback = await createFeedbackService(req.user.id, req.body);
+    res.status(201).json({
+      success: true,
+      message: "Feedback created successfully",
+      data: feedback,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -21,11 +21,7 @@ export async function createFeedbackController(req, res) {
 
 export async function createSuggestionController(req, res) {
   try {
-
-    const suggestion = await createSuggestionService(
-      req.user.id,
-      req.body
-    );
+    const suggestion = await createSuggestionService(req.user.id, req.body);
     res.status(201).json({
       success: true,
       message: "Suggestion submitted successfully",
@@ -50,7 +46,7 @@ export async function getRecentFeedbacksController(req, res) {
             name: "Nithin",
             role: "Software Engineer",
             avatar: "N",
-            content: "CodeSprint transformed my problem-solving skills.",
+            content: "CodingKaro transformed my problem-solving skills.",
             rating: 5,
             university: "IIIT Ranchi",
           },
@@ -105,4 +101,3 @@ export async function getHomePageStatsController(req, res) {
     res.status(500).json({ success: false, message: error.message });
   }
 }
-
