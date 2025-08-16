@@ -53,7 +53,7 @@ export default function LiveActivity({ homeStats, capitalizeFirstLetter }) {
                   joined
                 </div>
                 <div className="text-sm text-gray-400 dark:text-gray-500">
-                  CodingKaro Community
+                  CodeSprint Community
                 </div>
               </div>
             </div>

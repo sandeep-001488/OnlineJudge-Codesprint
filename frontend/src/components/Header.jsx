@@ -89,7 +89,7 @@ export default function Header() {
               <Code className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              CodingKaro
+              CodeSprint
             </span>
           </Link>
           <nav className="hidden md:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">

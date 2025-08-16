@@ -122,7 +122,7 @@ export default function ClientLayout({ children }) {
 
               <div className="text-center space-y-2">
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                  OJ-CodingKaro
+                  OJ-CodeSprint
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400 animate-pulse">
                   {isInitialized && shouldRequireAuth && !isLoggedIn

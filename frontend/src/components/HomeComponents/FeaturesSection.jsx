@@ -10,7 +10,7 @@ export default function FeaturesSection({
           <h2 className="text-4xl font-bold text-white dark:text-gray-100 mb-4">
             Why Developers Choose{" "}
             <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              CodingKaro
+              CodeSprint
             </span>
           </h2>
           <p className="text-xl text-gray-400 dark:text-gray-500">
