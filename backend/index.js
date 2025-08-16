@@ -17,10 +17,7 @@ const PORT = process.env.PORT;
 
 app.use(express.json());
 const corsOptions = {
-  origin: [
-    "http://localhost:3000",
-    "https://onlinejudge-codesprint-frontend.vercel.app",
-  ],
+  origin: ["http://localhost:3000", "https://codingkaro.vercel.app"],
   methods: "GET,POST,DELETE,PUT",
   allowedHeaders: ["Content-Type", "Authorization"],
 };
