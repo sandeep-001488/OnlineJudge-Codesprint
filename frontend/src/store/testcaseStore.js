@@ -62,7 +62,6 @@ export const useTestCaseStore = create((set, get) => ({
           limit: 1000,
         },
       };
-
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}testcases/problem/${problemId}`,
         config

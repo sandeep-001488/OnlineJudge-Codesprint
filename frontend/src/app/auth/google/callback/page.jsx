@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -52,8 +53,6 @@ export default function GoogleCallbackPage() {
             timeout: 10000,
           }
         );
-
-        console.log("Backend response:", response.data);
 
         if (!response.data.success) {
           throw new Error(response.data.message || "Authentication failed");

@@ -12,7 +12,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 
 export default function LoginPage() {
-   const { handleGoogleSignIn, isLoading: googleLoading } = useGoogleAuth();
+  const { handleGoogleSignIn, isLoading: googleLoading } = useGoogleAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
@@ -59,15 +59,15 @@ export default function LoginPage() {
       console.error("Login failed:", errorMessage);
     }
   };
-   const handleGoogleClick = async () => {
-     try {
-       setError(""); 
-       await handleGoogleSignIn();
-     } catch (error) {
-       setError("Google authentication failed. Please try again.");
-       console.error("Google auth error:", error);
-     }
-   };
+  const handleGoogleClick = async () => {
+    try {
+      setError("");
+      await handleGoogleSignIn();
+    } catch (error) {
+      setError("Google authentication failed. Please try again.");
+      console.error("Google auth error:", error);
+    }
+  };
 
   const redirectParam = searchParams.get("redirect");
 

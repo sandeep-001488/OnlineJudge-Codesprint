@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useAIStore } from "@/store/aiStore";
 import { useAuthStore } from "@/store/authStore";
 import {
@@ -40,8 +40,8 @@ const FloatingAIAssistant = ({
 
   const { token } = useAuthStore();
 
-  const remainingCalls = getRemainingCalls();
-  const timeUntilReset = getTimeUntilReset();
+ const remainingCalls = useMemo(() => getRemainingCalls(), [getRemainingCalls]);
+ const timeUntilReset = useMemo(() => getTimeUntilReset(), [getTimeUntilReset]);
 
   useEffect(() => {
     if (error && !responses.errorExplanation) {
