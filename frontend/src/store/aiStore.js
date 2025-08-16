@@ -291,7 +291,7 @@ const useAIStore = create(
       },
     }),
     {
-      name: "codesprint-ai-store",
+      name: "CodingKaro-ai-store",
       partialize: (state) => ({
         apiCallsCount: state.apiCallsCount,
         lastResetTime: state.lastResetTime,

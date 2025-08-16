@@ -11,7 +11,7 @@ export default function Footer() {
                 <Code2 className="h-5 w-5 text-white" />
               </div>
               <span className="text-xl font-bold text-white dark:text-gray-100">
-                CodeSprint
+                CodingKaro
               </span>
             </div>
             <p className="text-gray-400 dark:text-gray-500 text-sm leading-relaxed">
@@ -142,7 +142,7 @@ export default function Footer() {
 
         <div className="border-t border-white/10 dark:border-gray-800/30 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between">
           <div className="text-sm text-gray-400 dark:text-gray-500">
-            © 2025 CodeSprint. All rights reserved.
+            © 2025 CodingKaro. All rights reserved.
           </div>
           <div className="flex items-center space-x-6 mt-4 md:mt-0">
             <a

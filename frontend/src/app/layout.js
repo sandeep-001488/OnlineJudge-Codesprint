@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "OJ-Codesprint",
+  title: "OJ-CodingKaro",
   description: "All you need is coding",
   icons: {
     icon: "/favicon.ico",

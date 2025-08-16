@@ -80,7 +80,7 @@ export default function LoginPage() {
               Welcome Back
             </CardTitle>
             <p className="text-gray-600 dark:text-gray-400">
-              Sign in to your CodeSprint account
+              Sign in to your CodingKaro account
             </p>
           </CardHeader>
 

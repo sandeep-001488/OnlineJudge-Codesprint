@@ -36,7 +36,7 @@ export const dummyTestimonials = [
     role: "Software Engineer ",
     avatar: "N",
     content:
-      "CodeSprint transformed my problem-solving skills. The instant feedback and diverse problem set helped me crack my dream job interview!",
+      "CodingKaro transformed my problem-solving skills. The instant feedback and diverse problem set helped me crack my dream job interview!",
     rating: 5,
     university: "IIIT Ranchi",
   },
@@ -63,7 +63,7 @@ export const dummyTestimonials = [
     role: "Tech Lead at IIIT Ranchi",
     avatar: "G",
     content:
-      "I use CodeSprint to stay sharp. The platform's quality and community engagement are unmatched.",
+      "I use CodingKaro to stay sharp. The platform's quality and community engagement are unmatched.",
     rating: 5,
     university: "IIIT Ranchi",
   },
