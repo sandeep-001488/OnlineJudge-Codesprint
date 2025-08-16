@@ -29,7 +29,7 @@ const SuggestionForm = ({
             Share Your Suggestion
           </h2>
           <p className="text-gray-300 dark:text-gray-400">
-            Help us make CodeSprint even better!
+            Help us make CodingKaro even better!
           </p>
         </div>
       </div>
@@ -43,7 +43,7 @@ const SuggestionForm = ({
           type="textarea"
           value={suggestionForm.message}
           onChange={handleInputChange("message")}
-          placeholder="What feature would you like to see? How can we improve CodeSprint?"
+          placeholder="What feature would you like to see? How can we improve CodingKaro?"
           rows={6}
           required
           maxLength={1000}

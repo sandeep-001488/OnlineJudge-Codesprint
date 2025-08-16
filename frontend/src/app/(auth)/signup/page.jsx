@@ -73,7 +73,7 @@ export default function SignupPage() {
               Create Account
             </CardTitle>
             <p className="text-gray-600 dark:text-gray-400">
-              Join CodeSprint and start your coding journey
+              Join CodingKaro and start your coding journey
             </p>
           </CardHeader>
           <CardContent className="space-y-6">

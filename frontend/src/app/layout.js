@@ -2,9 +2,9 @@ import "../lib/refreshTokenInterceptor";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
-import ClientLayout from "@/components/ClientLayout";
 import ToastProvider from "@/components/ToastProvider";
 import { Suspense } from "react";
+import ClientLayout from "@/components/ClientLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "OJ-CodeSprint",
+  title: "OJ-CodingKaro",
   description: "All you need is coding",
   icons: {
     icon: "/favicon.ico",

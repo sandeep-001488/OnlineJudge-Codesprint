@@ -87,7 +87,7 @@ const FeedbackForm = ({
           type="textarea"
           value={feedbackForm.content}
           onChange={handleInputChange("content")}
-          placeholder="Share your experience with CodeSprint... (max 100 words)"
+          placeholder="Share your experience with CodingKaro... (max 100 words)"
           rows={4}
           required
           maxLength={600}

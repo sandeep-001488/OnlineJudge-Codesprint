@@ -10,7 +10,7 @@ const PageHeader = () => {
         </span>
       </h1>
       <p className="text-xl text-gray-300 dark:text-gray-400 max-w-2xl mx-auto">
-        Help us improve CodeSprint by sharing your feedback or suggesting new
+        Help us improve CodingKaro by sharing your feedback or suggesting new
         features
       </p>
     </div>
