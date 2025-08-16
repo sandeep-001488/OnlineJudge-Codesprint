@@ -62,7 +62,7 @@ export const useAuthStore = create(
             `${process.env.NEXT_PUBLIC_API_URL}auth/refresh-token`,
             {
               refreshToken,
-              rememberMe, 
+              rememberMe,
             }
           );
 
@@ -70,7 +70,7 @@ export const useAuthStore = create(
 
           set({
             token: accessToken,
-            refreshToken: newRefreshToken || refreshToken, 
+            refreshToken: newRefreshToken || refreshToken,
           });
 
           console.log("Token refreshed successfully");
@@ -105,12 +105,6 @@ export const useAuthStore = create(
             isLoading: false,
             error: null,
           });
-
-          console.log(
-            `Logged in successfully. Remember me: ${
-              credentials.rememberMe ? "15 days" : "7 days"
-            }`
-          );
         } catch (error) {
           const errorMessage = error.response?.data?.message || "Login failed";
           set({
@@ -158,8 +152,6 @@ export const useAuthStore = create(
           isLoggedIn: false,
           error: null,
         });
-
-        console.log("User logged out");
       },
 
       checkAuth: async () => {
@@ -192,8 +184,6 @@ export const useAuthStore = create(
             isLoading: false,
             isInitialized: true,
           });
-
-          console.log("Auth check successful");
         } catch (error) {
           if (error.response?.status === 401 && refreshToken) {
             const newToken = await get().refreshAccessToken();
@@ -218,7 +208,6 @@ export const useAuthStore = create(
                   isInitialized: true,
                 });
 
-                console.log("Auth restored after token refresh");
                 return;
               } catch (retryError) {
                 console.log("Retry with new token failed:", retryError);
@@ -226,7 +215,6 @@ export const useAuthStore = create(
             }
           }
 
-          console.log("Auth check failed, clearing session");
           set({
             user: null,
             token: null,

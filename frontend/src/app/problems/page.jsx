@@ -1,12 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +26,7 @@ import {
 import { useProblemStore } from "@/store/problemStore";
 import { useAuthStore } from "@/store/authStore";
 import { useThemeStore } from "@/store/themeStore";
+import { getDifficultyColor } from "@/lib/ProblemUtils";
 
 const ProblemList = () => {
   const router = useRouter();
@@ -104,28 +100,6 @@ const ProblemList = () => {
       router.push(`/problems/${slug}-${problemId}`);
     } else {
       router.push("/login");
-    }
-  };
-
-  const getDifficultyColor = (difficulty) => {
-    const isDark = theme === "dark";
-    switch (difficulty) {
-      case "easy":
-        return isDark
-          ? "bg-emerald-900/30 text-emerald-300 hover:bg-emerald-900/50 border-emerald-700/50"
-          : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-200";
-      case "medium":
-        return isDark
-          ? "bg-amber-900/30 text-amber-300 hover:bg-amber-900/50 border-amber-700/50"
-          : "bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200";
-      case "hard":
-        return isDark
-          ? "bg-red-900/30 text-red-300 hover:bg-red-900/50 border-red-700/50"
-          : "bg-red-50 text-red-700 hover:bg-red-100 border-red-200";
-      default:
-        return isDark
-          ? "bg-gray-800/30 text-gray-300 hover:bg-gray-800/50 border-gray-600/50"
-          : "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200";
     }
   };
 
@@ -232,7 +206,8 @@ const ProblemList = () => {
                       <div className="flex items-center gap-2">
                         <Badge
                           className={`${getDifficultyColor(
-                            problem.difficulty
+                            problem.difficulty,
+                            theme
                           )} border font-medium`}
                         >
                           {getDifficultyIcon(problem.difficulty)}
@@ -387,7 +362,6 @@ const ProblemList = () => {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
