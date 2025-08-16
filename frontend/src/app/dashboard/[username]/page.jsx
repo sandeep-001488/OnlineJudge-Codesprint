@@ -15,6 +15,7 @@ import {
   getLastActiveText,
 } from "@/lib/DashboardHelpers";
 
+
 export default function UserDashboard({ params }) {
   const router = useRouter();
   const resolvedParams = use(params);
@@ -24,6 +25,7 @@ export default function UserDashboard({ params }) {
   if (loading) {
     return <LoadingSpinner />;
   }
+  
 
   if (error || !user) {
     return (

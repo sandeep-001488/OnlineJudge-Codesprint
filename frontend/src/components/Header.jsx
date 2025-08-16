@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/store/authStore";
 import { useThemeStore } from "@/store/themeStore";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -36,6 +36,7 @@ export default function Header() {
     isHydrated: authHydrated,
   } = useAuthStore();
   const router = useRouter();
+  const pathname = usePathname();
 
   const {
     theme,
@@ -66,7 +67,15 @@ export default function Header() {
   }, [user]);
 
   const handleLogout = () => {
-    logout();
+    const isDashboardPage = pathname?.startsWith("/dashboard/");
+
+    if (isDashboardPage) {
+      logout(true);
+      router.push("/login");
+    } else {
+      logout();
+    }
+
     setIsMenuOpen(false);
   };
 
@@ -74,7 +83,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-lg dark:bg-gray-900/80 dark:border-gray-800">
       <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 relative">
-          {/* Logo - positioned at leftmost */}
+          {/* Logo*/}
           <Link href="/" className="flex items-center space-x-2">
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg">
               <Code className="h-6 w-6 text-white" />

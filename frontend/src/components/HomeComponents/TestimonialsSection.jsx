@@ -5,6 +5,10 @@ export default function TestimonialsSection({
   currentTestimonial,
   setCurrentTestimonial,
 }) {
+  const capitalizeFirstLetter = (name) => {
+    if (!name) return "";
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  };
   return (
     <section className="relative z-10 py-20 bg-gradient-to-r from-blue-900/20 to-purple-900/20 dark:from-blue-950/20 dark:to-purple-950/20">
       <div className="max-w-6xl mx-auto px-6">
@@ -16,7 +20,6 @@ export default function TestimonialsSection({
             Real success stories from our community
           </p>
         </div>
-
         <div className="relative">
           <div className="bg-white/10 dark:bg-gray-900/30 backdrop-blur-xl rounded-3xl p-8 border border-white/20 dark:border-gray-800/30">
             <div className="flex items-center justify-between mb-8">
@@ -57,7 +60,6 @@ export default function TestimonialsSection({
                 <ChevronRight className="h-6 w-6 text-white dark:text-gray-100" />
               </button>
             </div>
-
             <div className="text-center">
               <Quote className="h-12 w-12 text-blue-400 mx-auto mb-6" />
               <p className="text-2xl text-white dark:text-gray-100 font-medium mb-8 leading-relaxed max-w-4xl mx-auto">
@@ -70,7 +72,9 @@ export default function TestimonialsSection({
                 </div>
                 <div className="text-left">
                   <div className="text-xl font-semibold text-white dark:text-gray-100">
-                    {testimonials[currentTestimonial]?.name}
+                    {capitalizeFirstLetter(
+                      testimonials[currentTestimonial]?.name
+                    )}
                   </div>
                   <div className="text-blue-400">
                     {testimonials[currentTestimonial]?.role}

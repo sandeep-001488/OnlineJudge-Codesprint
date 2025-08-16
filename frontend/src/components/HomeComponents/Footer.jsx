@@ -19,7 +19,6 @@ export default function Footer() {
               and achieve their coding dreams.
             </p>
           </div>
-
           <div>
             <h3 className="text-white dark:text-gray-100 font-semibold mb-4">
               Platform
@@ -27,8 +26,8 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <a
-                  href="#"
-                  className="text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-100 transition-colors"
+                  href="/problems"
+                  className="text-white font-semibold dark:text-gray-500 hover:text-white dark:hover:text-gray-100 transition-colors"
                 >
                   Problems
                 </a>
@@ -124,7 +123,7 @@ export default function Footer() {
               <li>
                 <a
                   href="/user-feedback"
-                  className="text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-gray-100 transition-colors"
+                  className="text-white font-semibold dark:text-gray-500   dark:hover:text-gray-100 transition-colors"
                 >
                   Contact Us
                 </a>

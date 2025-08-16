@@ -139,6 +139,44 @@ export const useAuthStore = create(
         }
       },
 
+
+      updateUsername: async (newUsername) => {
+        const { token } = get();
+        set({ isLoading: true, error: null });
+
+        try {
+          const res = await axios.put(
+            `${process.env.NEXT_PUBLIC_API_URL}auth/update-username`,
+            { newUsername },
+            {
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const { user } = res.data;
+          const normalizedUser = normalizeUser(user);
+
+          set({
+            user: normalizedUser,
+            isLoading: false,
+            error: null,
+          });
+
+          return res.data;
+        } catch (error) {
+          const errorMessage =
+            error.response?.data?.message || "Failed to update username";
+          set({
+            error: errorMessage,
+            isLoading: false,
+          });
+          throw error;
+        }
+      },
+
       logout: (shouldRedirect = false) => {
         if (shouldRedirect && typeof window !== "undefined") {
           const currentUrl = window.location.pathname + window.location.search;

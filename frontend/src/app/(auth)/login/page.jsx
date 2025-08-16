@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Mail, Lock, Github, Chrome } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Globe } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
+import { useGoogleAuth } from "@/hooks/useGoogleAuth";
 
 export default function LoginPage() {
+   const { handleGoogleSignIn, isLoading: googleLoading } = useGoogleAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
@@ -57,6 +59,15 @@ export default function LoginPage() {
       console.error("Login failed:", errorMessage);
     }
   };
+   const handleGoogleClick = async () => {
+     try {
+       setError(""); 
+       await handleGoogleSignIn();
+     } catch (error) {
+       setError("Google authentication failed. Please try again.");
+       console.error("Google auth error:", error);
+     }
+   };
 
   const redirectParam = searchParams.get("redirect");
 
@@ -71,29 +82,24 @@ export default function LoginPage() {
             <p className="text-gray-600 dark:text-gray-400">
               Sign in to your CodeSprint account
             </p>
-          
           </CardHeader>
 
           <CardContent className="space-y-6">
             <div className="space-y-3">
               <Button
+                type="button"
+                onClick={handleGoogleClick}
+                disabled={googleLoading}
                 variant="outline"
                 className="w-full flex items-center justify-center space-x-2 h-12 bg-white/50 dark:bg-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-700/70 border-gray-200 dark:border-gray-600"
               >
-                <Chrome className="h-5 w-5" />
-                <span>Continue with Google</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full flex items-center justify-center space-x-2 h-12 bg-white/50 dark:bg-gray-700/50 hover:bg-white/70 dark:hover:bg-gray-700/70 border-gray-200 dark:border-gray-600"
-              >
-                <Github className="h-5 w-5" />
-                <span>Continue with GitHub</span>
+                <Globe className="h-5 w-5" />
+                <span>
+                  {googleLoading ? "Signing in..." : "Continue with Google"}
+                </span>
               </Button>
             </div>
 
-            {/* Divider */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
