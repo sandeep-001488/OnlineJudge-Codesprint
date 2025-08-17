@@ -54,7 +54,7 @@ export const CodeEditor = ({
                   variant="ghost"
                   size="sm"
                   onClick={onViewSubmissions}
-                  className="h-6 px-2 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20"
+                  className="hidden md:flex h-6 px-2 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20"
                 >
                   <History className="w-3 h-3 mr-1" />
                   {submissions.length}
@@ -129,7 +129,7 @@ export const CodeEditor = ({
         </div>
 
         {hasSubmissions && (
-          <div className="sm:hidden mt-2">
+          <div className="md:hidden mt-2">
             <Button
               variant="outline"
               size="sm"
@@ -137,7 +137,7 @@ export const CodeEditor = ({
               className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20"
             >
               <History className="w-3 h-3 mr-1" />
-              View {submissions.length} Submissions
+              {submissions.length}
             </Button>
           </div>
         )}
