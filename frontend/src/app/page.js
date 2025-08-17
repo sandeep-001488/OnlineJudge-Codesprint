@@ -135,7 +135,7 @@ export default function Home() {
 
       <StatsSection homeStats={homeStats} />
 
-      <Footer />
+      <Footer isAdmin={isAdmin} />
     </div>
   );
 }

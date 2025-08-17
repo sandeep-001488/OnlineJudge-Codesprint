@@ -1,6 +1,6 @@
 import { Code2 } from "lucide-react";
 
-export default function Footer() {
+export default function Footer({ isAdmin }) {
   return (
     <footer className="relative z-10 bg-gray-900/50 dark:bg-gray-950/70 backdrop-blur-xl border-t border-white/10 dark:border-gray-800/30">
       <div className="max-w-7xl mx-auto px-6 py-12">
@@ -26,7 +26,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <a
-                  href="/problems"
+                  href={isAdmin ? "/admin/problems" : "/problems"}
                   className="text-white font-semibold dark:text-gray-500 hover:text-white dark:hover:text-gray-100 transition-colors"
                 >
                   Problems

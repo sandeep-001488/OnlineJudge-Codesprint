@@ -26,20 +26,25 @@ export default function HeroSection({ isAdmin, homeStats, router }) {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               {isAdmin && (
-                <button className="group bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all flex items-center justify-center space-x-2 shadow-2xl">
+                <button
+                  onClick={() => router.push("/admin/problems/create")}
+                  className="group bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all flex items-center justify-center space-x-2 shadow-2xl"
+                >
                   <BadgePlus className="h-5 w-5 group-hover:rotate-180 transition-transform duration-300" />
                   <span>Create Problem</span>
                 </button>
               )}
 
               <button
-                onClick={() => router.push("/problems")}
+                onClick={() =>
+                  router.push(isAdmin ? "/admin/problems" : "/problems")
+                }
                 onMouseEnter={() => setHovered(true)}
                 onMouseLeave={() => setHovered(false)}
                 className="group bg-white/10 dark:bg-gray-800/30 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 
-                 text-white dark:text-gray-100 px-8 py-4 rounded-full text-lg font-semibold 
-                 hover:bg-white/20 dark:hover:bg-gray-800/50 transition-all duration-300 
-                 flex items-center justify-center space-x-2 hover:scale-105 hover:shadow-lg cursor-pointer"
+   text-white dark:text-gray-100 px-8 py-4 rounded-full text-lg font-semibold 
+   hover:bg-white/20 dark:hover:bg-gray-800/50 transition-all duration-300 
+   flex items-center justify-center space-x-2 hover:scale-105 hover:shadow-lg cursor-pointer"
               >
                 {!hovered && (
                   <Play className="h-5 w-5 transition-transform group-hover:translate-x-1" />
