@@ -10,18 +10,17 @@ export default function HeroSection({ isAdmin, homeStats, router }) {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="text-left">
             <h1 className="text-5xl lg:text-7xl font-bold text-white dark:text-gray-100 mb-6 leading-tight">
-              Code.{" "}
+              Dry Run{" "}
               <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Compete.
+                To.
               </span>
               <br />
-              Conquer.
+              Code...
             </h1>
-
             <p className="text-xl text-gray-300 dark:text-gray-400 mb-8 max-w-lg leading-relaxed">
-              Step into the future of competitive programming. Master
-              algorithms, compete globally, and unlock your coding potential
-              with our revolutionary platform.
+              Perfect your logic, crush the testcases, hit submit. Experience
+              the complete competitive programming workflow designed for
+              champions.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
