@@ -39,7 +39,7 @@ const LANGUAGES = [
     value: "java",
     label: "Java",
     version: "OpenJDK 17",
-    template: `import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // Your solution here\n    }\n}`,
+    template: `import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n  // Your solution here\n    }\n}`,
   },
   {
     value: "javascript",
@@ -127,15 +127,32 @@ const ProblemPage = () => {
     );
   }
 
-  if (!problem) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400">Problem not found</p>
-        </div>
-      </div>
-    );
-  }
+ if (!problem) {
+   return (
+     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
+       <div className="text-center space-y-6">
+         <div className="relative mx-auto w-16 h-16">
+           <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
+         </div>
+
+         <div className="flex justify-center space-x-1">
+           <div
+             className="w-2 h-2 bg-red-700 rounded-full animate-bounce"
+             style={{ animationDelay: "0ms" }}
+           ></div>
+           <div
+             className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+             style={{ animationDelay: "150ms" }}
+           ></div>
+           <div
+             className="w-2 h-2 bg-green-500 rounded-full animate-bounce"
+             style={{ animationDelay: "300ms" }}
+           ></div>
+         </div>
+       </div>
+     </div>
+   );
+ }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">

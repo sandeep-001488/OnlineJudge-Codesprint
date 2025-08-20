@@ -136,7 +136,6 @@ const ProblemList = () => {
             </Badge>
           </div>
         </div>
-
         <Card className="mb-8 shadow-lg border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
           <CardContent className="p-6">
             <div className="space-y-4">
@@ -186,6 +185,72 @@ const ProblemList = () => {
             </div>
           </CardContent>
         </Card>
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-20 space-y-8">
+            <div className="relative">
+              <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
+              <div
+                className="w-16 h-16 border-4 border-transparent border-t-purple-600 dark:border-t-purple-400 rounded-full animate-spin absolute top-0 left-0"
+                style={{
+                  animationDuration: "1.5s",
+                  animationDirection: "reverse",
+                }}
+              ></div>
+            </div>
+
+            <div className="flex space-x-2">
+              <div
+                className="w-3 h-3 bg-blue-500 rounded-full animate-bounce"
+                style={{ animationDelay: "0ms" }}
+              ></div>
+              <div
+                className="w-3 h-3 bg-purple-500 rounded-full animate-bounce"
+                style={{ animationDelay: "150ms" }}
+              ></div>
+              <div
+                className="w-3 h-3 bg-cyan-500 rounded-full animate-bounce"
+                style={{ animationDelay: "300ms" }}
+              ></div>
+            </div>
+
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                Loading Problems...
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Fetching the latest coding challenges for you
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mt-8">
+              {[...Array(6)].map((_, index) => (
+                <Card
+                  key={index}
+                  className="border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm overflow-hidden"
+                >
+                  <div className="h-2 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 animate-pulse"></div>
+                  <CardHeader className="pb-4">
+                    <div className="space-y-3">
+                      <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-md w-20 animate-pulse"></div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-4/5"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/5"></div>
+                      <div className="flex gap-2 mt-4">
+                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-16 animate-pulse"></div>
+                        <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20 animate-pulse"></div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         {!isLoading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
@@ -262,7 +327,6 @@ const ProblemList = () => {
             ))}
           </div>
         )}
-
         {!isLoading && problems.length === 0 && (
           <div className="text-center py-16">
             <div className="mb-6">
@@ -290,7 +354,6 @@ const ProblemList = () => {
             </Button>
           </div>
         )}
-
         {!isLoading && problems.length > 0 && !searchQuery && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-sm text-gray-600 dark:text-gray-400">

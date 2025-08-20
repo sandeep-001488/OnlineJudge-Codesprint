@@ -21,13 +21,13 @@ const languages = [
     value: "java",
     label: "Java",
     version: "OpenJDK 17",
-    template: `import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // Your solution here\n    }\n}`,
+    template: `import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n       // Your solution here\n    }\n}`,
   },
   {
     value: "javascript",
     label: "JavaScript",
     version: "Node.js 18",
-    template: `const readline = require('readline');\nconst rl = readline.createInterface({\n    input: process.stdin,\n    output: process.stdout\n});\n\n// Your solution here`,
+    template: `const readline = require('readline');\nconst rl = readline.createInterface({\n  });\n\n// Your solution here`,
   },
 ];
 
