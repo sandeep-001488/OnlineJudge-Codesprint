@@ -11,16 +11,17 @@ const UserProfileHeader = ({
   getLastActiveText,
 }) => {
   const { user: loggedInUser } = useAuthStore();
- 
+
+  const profilePicture = loggedInUser?.picture || user?.picture;
 
   return (
     <Card className="mb-8 bg-gradient-to-r from-blue-600 to-purple-600 border-0 text-white">
       <CardContent className="pt-6">
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
           <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
-            {loggedInUser.picture ? (
+            {profilePicture ? (
               <img
-                src={loggedInUser.picture}
+                src={profilePicture}
                 alt="Profile"
                 className="w-full h-full object-cover"
               />
@@ -31,14 +32,14 @@ const UserProfileHeader = ({
           <div className="text-center md:text-left flex-1">
             <div className="flex items-center justify-center md:justify-start space-x-2 mb-2">
               <EditableUsername
-                username={user.username}
+                username={user?.username || "User"}
                 isOwnProfile={isOwnProfile}
               />
               {stats?.rank <= 10 && (
                 <Crown className="h-8 w-8 text-yellow-300" />
               )}
             </div>
-            {isOwnProfile && user.email && (
+            {isOwnProfile && user?.email && (
               <div className="flex items-center justify-center md:justify-start space-x-1 mb-2">
                 <Mail className="h-4 w-4" />
                 <span className="text-blue-100">{user.email}</span>
@@ -58,7 +59,10 @@ const UserProfileHeader = ({
               <div className="flex items-center space-x-1">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  Joined {new Date(user.createdAt).toLocaleDateString()}
+                  Joined{" "}
+                  {user?.createdAt
+                    ? new Date(user.createdAt).toLocaleDateString()
+                    : "N/A"}
                 </span>
               </div>
             </div>
