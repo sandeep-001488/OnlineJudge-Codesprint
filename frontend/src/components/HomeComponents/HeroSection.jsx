@@ -64,7 +64,7 @@ export default function HeroSection({ isAdmin, homeStats, router }) {
                     ? homeStats.totalUsers > 1000
                       ? `${(homeStats.totalUsers / 1000).toFixed(1)}K+`
                       : `${homeStats.totalUsers}+`
-                    : "50K+"}
+                    : "100"}
                 </div>
                 <div className="text-sm text-gray-400 dark:text-gray-500">
                   Active Coders
@@ -78,7 +78,7 @@ export default function HeroSection({ isAdmin, homeStats, router }) {
                           homeStats.totalProblemsWithAcceptedSubmissions / 1000
                         ).toFixed(1)}K+`
                       : `${homeStats.totalProblemsWithAcceptedSubmissions}+`
-                    : "1M+"}
+                    : "500+"}
                 </div>
                 <div className="text-sm text-gray-400 dark:text-gray-500">
                   Problems Solved

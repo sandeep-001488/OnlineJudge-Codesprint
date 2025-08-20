@@ -21,7 +21,7 @@ export default function StatsSection({ homeStats }) {
                     ? homeStats.totalUsers > 1000
                       ? `${(homeStats.totalUsers / 1000).toFixed(1)}K+`
                       : `${homeStats.totalUsers}+`
-                    : "50K+"}
+                    : "100"}
                 </div>
                 <div className="text-blue-100">Active Users</div>
                 <div className="w-full bg-blue-400/20 rounded-full h-2 mt-2">
@@ -37,7 +37,7 @@ export default function StatsSection({ homeStats }) {
                           homeStats.totalProblemsWithAcceptedSubmissions / 1000
                         ).toFixed(1)}K+`
                       : `${homeStats.totalProblemsWithAcceptedSubmissions}+`
-                    : "1M+"}
+                    : "500"}
                 </div>
                 <div className="text-blue-100">Problems Solved</div>
                 <div className="w-full bg-purple-400/20 rounded-full h-2 mt-2">
