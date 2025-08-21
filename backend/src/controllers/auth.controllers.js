@@ -4,6 +4,8 @@ import {
   resetUserPassword,
   updateUserUsername,
   checkUsernameExists,
+  requestPasswordReset, 
+  resetUserPasswordWithToken,
 } from "../services/auth.service.js";
 
 import {
@@ -431,3 +433,43 @@ export async function RefreshToken(req, res) {
     res.status(403).json({ message: "Invalid or expired refresh token" });
   }
 }
+
+export const RequestPasswordReset = async (req, res) => {
+  try {
+    const { identifier } = req.body;
+
+    if (!identifier) {
+      return res.status(400).json({ message: "Email or username is required" });
+    }
+
+    const result = await requestPasswordReset({ identifier });
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Password reset request error:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to process password reset request" });
+  }
+};
+
+export const ResetPasswordWithToken = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Token and new password are required" });
+    }
+
+    const user = await resetUserPasswordWithToken({ token, newPassword });
+
+    res.status(200).json({
+      message: "Password reset successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
