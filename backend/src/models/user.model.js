@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import validator from "validator";
-import bcrypt from "bcrypt"; 
+import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema(
   {
@@ -91,17 +91,18 @@ userSchema.pre("save", async function (next) {
   }
 
   if (this.provider === "google" && !this.password) {
-    this.password = `google_oauth_${this.googleId}_${Date.now()}`;
+    const tempPassword = `google_oauth_${this.googleId}_${Date.now()}`;
+    this.password = tempPassword;
+    this.markModified("password");
   }
 
-  if (this.isModified("password")) {
+  if (this.isModified("password") && this.password) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
   }
 
   next();
 });
-
 
 userSchema.methods.isGoogleUser = function () {
   return this.provider === "google" && this.googleId;
