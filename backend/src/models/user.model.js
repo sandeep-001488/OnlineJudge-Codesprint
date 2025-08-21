@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import validator from "validator";
+import bcrypt from "bcryptjs"; // 👈 add bcrypt
 
 const userSchema = new mongoose.Schema(
   {
@@ -46,11 +47,11 @@ const userSchema = new mongoose.Schema(
     },
     googleId: {
       type: String,
-      sparse: true, 
+      sparse: true,
       unique: true,
     },
     picture: {
-      type: String, 
+      type: String,
     },
     provider: {
       type: String,
@@ -84,7 +85,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre("save", function (next) {
+userSchema.pre("save", async function (next) {
   if (this.provider === "google" && !this.isEmailVerified) {
     this.isEmailVerified = true;
   }
@@ -93,8 +94,14 @@ userSchema.pre("save", function (next) {
     this.password = `google_oauth_${this.googleId}_${Date.now()}`;
   }
 
+  if (this.isModified("password")) {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+  }
+
   next();
 });
+
 
 userSchema.methods.isGoogleUser = function () {
   return this.provider === "google" && this.googleId;
@@ -104,5 +111,5 @@ userSchema.methods.getFullName = function () {
   return `${this.firstName} ${this.lastName || ""}`.trim();
 };
 
-const User = mongoose.model.User || mongoose.model("User", userSchema);
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 export default User;

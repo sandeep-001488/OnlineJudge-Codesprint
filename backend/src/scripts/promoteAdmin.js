@@ -6,7 +6,6 @@ dotenv.config();
 await mongoose.connect(process.env.MONGODB_URI);
 
 const adminUsername = process.env.ADMIN_USERNAME;
-
 if (!adminUsername) {
   console.error("ADMIN_EMAIL is not defined in .env");
   process.exit(1);
