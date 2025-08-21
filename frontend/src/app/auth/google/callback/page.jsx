@@ -32,10 +32,6 @@ export default function GoogleCallbackPage() {
           throw new Error("No authorization code received from Google");
         }
 
-        console.log(
-          "Received authorization code:",
-          code.substring(0, 10) + "..."
-        );
         setStatus("Exchanging code for tokens...");
 
         const redirectUri = `${window.location.origin}/auth/google/callback`;

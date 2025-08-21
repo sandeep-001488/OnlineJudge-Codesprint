@@ -187,14 +187,22 @@ export default function LoginPage() {
                     </div>
                   </div>
                 </div>
+
                 <Link
-                  href={`/reset-password${
+                  href={`/request-password-reset`}
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  Forgot password?
+                </Link>
+
+                {/* <Link
+                  href={`/request-password-reset${
                     redirectParam ? `?redirect=${redirectParam}` : ""
                   }`}
                   className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                 >
                   Forgot password?
-                </Link>
+                </Link> */}
               </div>
 
               <Button
